@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-pod-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s-pod-manager
+  template:
+    metadata:
+      labels:
+        app: k8s-pod-manager
+    spec:
+      containers:
+      - name: k8s-pod-manager
+        image: k8s-pod-manager:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5000
+        env:
+        - name: FLASK_ENV
+          value: "production"
+        - name: FLASK_RUN_HOST
+          value: "0.0.0.0"
+        - name: FLASK_RUN_PORT
+          value: "5000"
+        volumeMounts:
+        - name: kubeconfigs
+          mountPath: /app/kubeconfigs
+        - name: config
+          mountPath: /app/config
+      volumes:
+      - name: kubeconfigs
+        emptyDir: {}
+      - name: config
+        persistentVolumeClaim:
+          claimName: k8s-pod-manager-config
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: k8s-pod-manager-config
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: k8s-pod-manager
+  annotations:
+    # 如果使用Ingress，可以添加相关注解
+    # kubernetes.io/ingress.class: "nginx"
+spec:
+  type: NodePort
+  selector:
+    app: k8s-pod-manager
+  ports:
+  - port: 80
+    targetPort: 5000
+    nodePort: 30007
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k8s-pod-manager-config
+data:
+  auth_config.json: |
+    {}
+  cluster_configs.json: |
+    []
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: k8s-pod-manager-logs
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

@@ -10,6 +10,7 @@ class AuthManager:
         """初始化认证管理器"""
         self.config_file = config_file or os.path.join(
             os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+            'config',
             'auth_config.json'
         )
         self.log_manager = LogManager()

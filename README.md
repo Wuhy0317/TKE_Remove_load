@@ -1,107 +1,378 @@
-# TKE_Remove_load
+# K8s Pod负载管理工具
 
-一个用于在K8s集群内管理Pod负载的工具，通过增删Pod标签实现踢出和恢复负载的功能。
+一个基于Flask和Kubernetes API的K8s Pod负载管理工具，支持多集群管理、用户认证、权限控制和Pod负载踢出/恢复功能。
 
-## 功能特点
+## 功能特性
 
-- 支持多个K8s集群管理
-- 可视化界面操作，简单易用
-- 支持选择集群、命名空间、工作负载类型、工作负载
-- 支持踢出Pod负载（添加`removeload: yes`标签）
-- 支持恢复Pod流量（移除`removeload`标签）
-- 实时显示Pod状态和是否已踢出负载
+### 核心功能
+- ✅ **多集群管理**：支持管理多个Kubernetes集群
+- ✅ **Pod负载管理**：支持踢出Pod负载和恢复流量
+- ✅ **节点IP显示**：显示真实节点IP而非节点名称
+- ✅ **Pod信息展示**：显示Pod名称、状态、节点IP、Pod IP、创建时间、运行时间等
+- ✅ **集群名称映射**：支持自定义集群显示名称
 
-## 技术栈
+### 认证与权限
+- ✅ **用户认证**：基于用户名密码的认证机制
+- ✅ **权限管理**：支持三级权限（admin、read、write）
+- ✅ **集群级权限**：支持基于集群的访问控制
+- ✅ **操作日志**：记录用户操作日志
+- ✅ **自动登出**：10分钟不活动自动登出
 
-- **后端**：Python、Flask、Kubernetes Python Client
-- **前端**：HTML、CSS、JavaScript
+### 管理功能
+- ✅ **集群管理**：添加、编辑、删除集群配置
+- ✅ **用户管理**：添加、编辑、删除用户，配置权限
+- ✅ **日志管理**：查看操作日志
 
-## 目录结构
+### 部署支持
+- ✅ **Docker支持**：提供Dockerfile，支持容器化部署
+- ✅ **Kubernetes支持**：提供K8s部署文件
+- ✅ **配置持久化**：支持配置文件持久化存储
+
+## 项目结构
 
 ```
-TKE_Remove_load/
-├── app/                 # 应用核心代码
-│   ├── api/            # API路由层
+.
+├── app/                  # 应用主目录
+│   ├── __init__.py       # 应用初始化
+│   ├── api/              # API路由
 │   │   ├── __init__.py
-│   │   └── k8s.py      # K8s相关API路由
-│   ├── config/         # 配置文件
-│   │   └── config.py   # 应用配置
-│   ├── services/       # 业务逻辑层
-│   │   └── k8s_service.py  # K8s服务逻辑
-│   ├── utils/          # 工具类
-│   │   └── k8s_client.py   # K8s客户端工具
-│   └── __init__.py     # 应用初始化
-├── kubeconfigs/        # K8s集群配置文件目录
-├── static/             # 静态资源
-│   └── index.html      # 前端页面
-├── app.py              # 应用入口
-└── requirements.txt    # 依赖项
+│   │   └── k8s.py        # K8s相关API
+│   ├── config/           # 配置文件
+│   │   └── config.py     # 应用配置
+│   ├── services/         # 业务逻辑层
+│   │   └── k8s_service.py # K8s服务
+│   └── utils/            # 工具类
+│       ├── auth_manager.py   # 认证管理器
+│       ├── cluster_manager.py # 集群管理器
+│       ├── k8s_client.py      # K8s客户端
+│       └── log_manager.py     # 日志管理器
+├── config/               # 配置文件目录
+│   ├── auth_config.json  # 用户认证配置
+│   ├── cluster_configs.json # 集群配置
+│   └── logs.json         # 操作日志
+├── static/               # 静态资源
+│   ├── admin.html        # 管理后台页面
+│   ├── index.html        # 主页面
+│   └── login.html        # 登录页面
+├── kubeconfigs/          # Kubeconfig文件目录
+├── app.py                # 应用入口
+├── Dockerfile            # Docker构建文件
+├── deployment.yaml       # Kubernetes部署文件
+├── requirements.txt      # 依赖列表
+└── README.md             # 项目文档
 ```
 
-## 安装和使用
+## 安装与部署
 
-### 1. 准备K8s集群配置文件
+### 1. 本地安装
 
-将各个K8s集群的kube-config文件放入`kubeconfigs`目录，文件名格式为`<cluster_name>.yaml`或`<cluster_name>.yml`。
+#### 环境要求
+- Python 3.11+
+- pip
 
-### 2. 安装依赖
+#### 安装步骤
 
+1. 克隆项目
 ```bash
-pip3 install -r requirements.txt --break-system-packages
+git clone <repository-url>
+cd k8s-pod-manager
 ```
 
-### 3. 运行应用
-
+2. 安装依赖
 ```bash
-python3 app.py
+pip install -r requirements.txt
 ```
 
-### 4. 访问应用
+3. 启动应用
+```bash
+python app.py
+```
 
-在浏览器中访问：http://127.0.0.1:5000
+4. 访问应用
+```
+http://localhost:5000
+```
+
+### 2. Docker部署
+
+1. 构建镜像
+```bash
+docker build -t k8s-pod-manager:latest .
+```
+
+2. 运行容器
+```bash
+docker run -d -p 5000:5000 --name k8s-pod-manager \
+  -v $(pwd)/config:/app/config \
+  -v $(pwd)/kubeconfigs:/app/kubeconfigs \
+  k8s-pod-manager:latest
+```
+
+### 3. Kubernetes部署
+
+1. 应用部署
+```bash
+kubectl apply -f deployment.yaml
+```
+
+2. 访问应用
+```
+http://<node-ip>:30007
+```
 
 ## 使用说明
 
-1. **选择集群**：从下拉菜单中选择要操作的K8s集群
-2. **选择命名空间**：选择要操作的命名空间
-3. **选择工作负载类型**：可选全部类型、Deployment、StatefulSet或DaemonSet
-4. **选择工作负载**：选择要操作的具体工作负载
-5. **查看Pod列表**：显示该工作负载下的所有Pod
-6. **踢出负载**：点击对应Pod的"踢出负载"按钮，添加`removeload: yes`标签
-7. **恢复流量**：点击对应Pod的"恢复流量"按钮，移除`removeload`标签
+### 1. 登录系统
 
-## 实现原理
+- 访问 `http://localhost:5000`
+- 使用默认用户名密码登录：
+  - 管理员：admin/admin123
+  - 普通用户：user/user123
 
-1. 当需要踢出Pod负载时，向Pod添加标签`removeload: yes`
-2. Service通过标签选择器匹配Pod，当Pod添加了`removeload: yes`标签后，与Service的标签选择器不匹配
-3. Service自动从Endpoints中移除该Pod，实现踢出负载的目的
-4. 恢复流量时，移除Pod的`removeload`标签，使Pod重新匹配Service的标签选择器
-5. Service自动将Pod添加回Endpoints，恢复流量
+### 2. 添加集群
 
-## 注意事项
+1. 登录管理员账号
+2. 点击"集群管理后台"进入管理页面
+3. 切换到"集群管理"标签
+4. 点击"添加集群"按钮
+5. 填写集群名称、显示名称和Kubeconfig内容
+6. 点击"保存"按钮
 
-1. 确保kube-config文件具有足够的权限操作Pod标签
-2. 建议在测试环境中先进行测试，再在生产环境中使用
-3. 该工具仅负责管理Pod标签，不直接操作Service
-4. 确保Service的标签选择器不包含`removeload`标签
+### 3. 管理Pod负载
+
+1. 从集群下拉列表中选择一个集群
+2. 选择命名空间和工作负载
+3. 在Pod列表中，点击"踢出负载"按钮将Pod从负载均衡中移除
+4. 点击"恢复流量"按钮将Pod重新加入负载均衡
+
+### 4. 用户管理
+
+1. 登录管理员账号
+2. 进入管理后台，切换到"用户管理"标签
+3. 点击"添加用户"按钮添加新用户
+4. 设置用户名、密码和权限
+5. 点击"保存"按钮
+
+## 配置说明
+
+### 1. 应用配置（app/config/config.py）
+
+- `LOAD_LABEL`：负载标签名称（默认：`load`）
+- `LOAD_DONE_VALUE`：踢出负载后的值（默认：`done`）
+- `LOAD_ONLINE_VALUE`：恢复流量后的值（默认：`online`）
+
+### 2. 用户配置（config/auth_config.json）
+
+```json
+[
+  {
+    "username": "admin",
+    "password_hash": "...",
+    "permissions": {
+      "admin": true,
+      "read": true,
+      "write": true,
+      "clusters": {}
+    }
+  }
+]
+```
+
+### 3. 集群配置（config/cluster_configs.json）
+
+```json
+[
+  {
+    "name": "cluster-1",
+    "display_name": "开发集群",
+    "kubeconfig_content": "apiVersion: v1\nclusters: [...]"
+  }
+]
+```
+
+## API文档
+
+### 1. 认证相关
+
+- `POST /api/login`：用户登录
+- `POST /api/logout`：用户登出
+- `GET /api/current-user`：获取当前用户信息
+
+### 2. 集群相关
+
+- `GET /api/clusters`：获取集群列表
+- `GET /api/{cluster}/namespaces`：获取命名空间列表
+- `GET /api/{cluster}/{namespace}/workloads`：获取工作负载列表
+- `GET /api/{cluster}/{namespace}/{workload_type}/{workload_name}/pods`：获取Pod列表
+
+### 3. Pod操作
+
+- `POST /api/{cluster}/{namespace}/pods/{pod_name}/remove-load`：踢出负载
+- `POST /api/{cluster}/{namespace}/pods/{pod_name}/restore-traffic`：恢复流量
+
+### 4. 管理后台API
+
+- `GET /api/admin/clusters`：获取集群列表（管理）
+- `POST /api/admin/clusters`：添加集群（管理）
+- `PUT /api/admin/clusters/{cluster_name}`：更新集群（管理）
+- `DELETE /api/admin/clusters/{cluster_name}`：删除集群（管理）
+- `GET /api/admin/users`：获取用户列表（管理）
+- `POST /api/admin/users`：添加用户（管理）
+- `PUT /api/admin/users/{username}`：更新用户（管理）
+- `DELETE /api/admin/users/{username}`：删除用户（管理）
+
+## 负载管理原理
+
+该工具通过修改Pod的标签来实现负载管理：
+
+1. **踢出负载**：将Pod的`load`标签设置为`done`
+2. **恢复流量**：将Pod的`load`标签设置为`online`
+
+需要确保Kubernetes集群中的负载均衡器（如Service）配置了相应的标签选择器，只将`load: online`的Pod包含在负载均衡中。
+
+## 权限模型
+
+1. **管理员权限**：
+   - 拥有所有集群的所有权限
+   - 可以管理用户和集群
+   - 可以查看操作日志
+
+2. **读写权限**：
+   - 可以查看所有集群和Pod信息
+   - 可以执行踢出负载和恢复流量操作
+
+3. **只读权限**：
+   - 只能查看集群和Pod信息
+   - 不能执行操作
+
+4. **集群级权限**：
+   - 可以配置用户只能访问特定集群
+   - 基于集群名称进行权限控制
 
 ## 开发说明
 
-### 项目架构
+### 开发环境设置
 
-- **API层**：处理HTTP请求和响应，调用服务层处理业务逻辑
-- **服务层**：实现核心业务逻辑，调用工具类与K8s API交互
-- **工具层**：封装K8s API调用，提供简洁的接口
-- **配置层**：集中管理应用配置
+1. 安装开发依赖
+```bash
+pip install -r requirements.txt
+```
 
-### 扩展建议
+2. 启动开发服务器
+```bash
+flask run --debug
+```
 
-1. 添加用户认证和授权机制
-2. 支持更多工作负载类型
-3. 添加日志记录功能
-4. 支持批量操作Pod
-5. 添加监控和告警功能
+3. 访问开发服务器
+```
+http://localhost:5000
+```
+
+### 代码风格
+
+- 使用4空格缩进
+- 遵循PEP 8规范
+- 使用类型提示
+- 编写清晰的注释
+
+## 监控与日志
+
+### 1. 操作日志
+
+- 登录日志：记录用户登录成功/失败情况
+- 操作日志：记录用户执行的操作，包括踢出负载、恢复流量、添加用户、管理集群等
+- 日志存储在`config/logs.json`文件中
+
+### 2. 错误处理
+
+- 全局错误处理机制
+- 友好的错误提示
+- 详细的错误日志记录
+
+## 安全考虑
+
+1. **密码安全**：
+   - 使用SHA-256哈希存储密码
+   - 禁止明文传输密码
+
+2. **权限控制**：
+   - 基于角色的访问控制
+   - 细粒度的权限检查
+   - 集群级别的访问控制
+
+3. **会话管理**：
+   - 安全的会话机制
+   - 自动登出功能
+   - 会话超时控制
+
+4. **输入验证**：
+   - 严格的输入验证
+   - 防止SQL注入和XSS攻击
+   - 限制请求大小和频率
+
+## 常见问题
+
+### 1. 为什么无法删除集群？
+
+**原因**：集群配置被删除后，系统会自动从`kubeconfigs`目录重新导入。
+
+**解决方案**：同时删除`kubeconfigs`目录中的对应文件。
+
+### 2. 如何修改默认用户名密码？
+
+**方法**：
+1. 登录管理后台
+2. 进入用户管理页面
+3. 编辑对应的用户
+4. 设置新密码
+5. 保存修改
+
+### 3. 如何配置负载均衡器识别load标签？
+
+**示例**：在Service的标签选择器中添加`load: online`条件
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-service
+spec:
+  selector:
+    app: my-app
+    load: online
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+```
+
+## 版本历史
+
+- v1.0.0：初始版本
+  - 支持多集群管理
+  - 支持Pod负载踢出和恢复
+  - 支持用户认证和权限管理
+  - 提供Web管理界面
+  - 支持Docker和Kubernetes部署
+
+## 贡献指南
+
+1. Fork项目
+2. 创建特性分支
+3. 提交代码
+4. 创建Pull Request
 
 ## 许可证
 
 MIT License
+
+## 联系方式
+
+如有问题或建议，请通过以下方式联系：
+
+- 项目地址：<repository-url>
+- 问题反馈：<issue-url>
+
+---
+
+**K8s Pod负载管理工具** - 简化Kubernetes集群的Pod负载管理

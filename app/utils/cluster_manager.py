@@ -8,6 +8,7 @@ class ClusterManager:
         """初始化集群管理器"""
         self.config_file = config_file or os.path.join(
             os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+            'config',
             'cluster_configs.json'
         )
         self._init_config_file()

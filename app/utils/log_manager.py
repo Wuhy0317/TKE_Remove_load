@@ -9,6 +9,7 @@ class LogManager:
         """初始化日志管理器"""
         self.log_file = log_file or os.path.join(
             os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+            'config',
             'logs.json'
         )
         self._init_log_file()
