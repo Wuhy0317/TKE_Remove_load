@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>K8s Pod负载管理工具</title>
+    <style>
+        /* 全局样式重置和基础设置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        /* 容器样式 */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* 标题样式 */
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.2rem;
+            font-weight: 600;
+        }
+        
+        h2 {
+            color: #34495e;
+            margin-bottom: 20px;
+            font-size: 1.6rem;
+            font-weight: 500;
+            border-bottom: 2px solid #e0e6ed;
+            padding-bottom: 10px;
+        }
+        
+        /* 选择区域样式 */
+        .select-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: end;
+        }
+        
+        .select-item {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 0.95rem;
+        }
+        
+        select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: #fff;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        /* 表格样式 */
+        .pod-section {
+            margin-top: 30px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        th {
+            background-color: #ffc0cb;
+            color: #8b4513;
+            padding: 16px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        td {
+            padding: 16px;
+            text-align: center;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.95rem;
+        }
+        
+        /* 限制Pod名称宽度并允许换行 */
+        td:nth-child(1) {
+            max-width: 200px;
+            word-wrap: break-word;
+            word-break: break-all;
+        }
+        
+        /* 确保操作按钮列不被压缩 */
+        .action-buttons {
+            min-width: 150px;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+        
+        tr:hover {
+            background-color: #f1f5f9;
+            transition: background-color 0.2s ease;
+        }
+        
+        /* 状态标签样式 */
+        .status {
+            padding: 5px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .status.Running {
+            background-color: #e8f5e8;
+            color: #2e7d32;
+        }
+        
+        .status.Pending {
+            background-color: #fff3e0;
+            color: #ef6c00;
+        }
+        
+        .status.Failed {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        
+        .status.Succeeded {
+            background-color: #e3f2fd;
+            color: #1565c0;
+        }
+        
+        /* 操作按钮样式 */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        button.remove {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+        
+        button.remove:hover {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        }
+        
+        button.restore {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+        
+        button.restore:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        }
+        
+        /* 踢出负载状态样式 */
+        .has-removeload {
+            color: #dc2626;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        
+        .no-removeload {
+            color: #059669;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        
+        /* 消息提示样式 */
+        .message {
+            padding: 16px 20px;
+            margin: 10px 0;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .message.success {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            color: #065f46;
+            border: 2px solid #059669;
+        }
+        
+        .message.error {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            color: #991b1b;
+            border: 2px solid #dc2626;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .select-section {
+                flex-direction: column;
+            }
+            
+            .select-item {
+                width: 100%;
+            }
+            
+            table {
+                font-size: 0.85rem;
+            }
+            
+            th, td {
+                padding: 12px 8px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            button {
+                width: 100%;
+                padding: 8px 12px;
+            }
+        }
+        
+        /* 空状态和加载状态 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+        }
+        
+        .empty-state p {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        
+        .empty-state small {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div style="flex: 1; text-align: center; margin-left: 150px;">
+                <h1 style="margin: 0;">K8s Pod负载管理工具</h1>
+            </div>
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <span id="currentUser" style="font-weight: bold; color: #666; font-size: 0.95rem;">欢迎，加载中...</span>
+                <a href="#" id="adminLink" class="btn" style="background-color: #2196F3; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: bold;">集群管理后台</a>
+                <button id="logoutBtn" style="background-color: #f44336; color: white; padding: 10px 20px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">登出</button>
+            </div>
+        </div>
+        
+        <div class="select-section">
+            <div class="select-item">
+                <label for="cluster">K8s集群</label>
+                <select id="cluster" onchange="loadNamespaces()">
+                    <option value="">请选择集群</option>
+                </select>
+            </div>
+            
+            <div class="select-item">
+                <label for="namespace">命名空间</label>
+                <select id="namespace" onchange="loadWorkloads()">
+                    <option value="">请选择命名空间</option>
+                </select>
+            </div>
+            
+            <div class="select-item">
+                <label for="workloadType">工作负载类型</label>
+                <select id="workloadType" onchange="loadWorkloads()">
+                    <option value="">全部类型</option>
+                    <option value="deployment">Deployment</option>
+                    <option value="statefulset">StatefulSet</option>
+                    <option value="daemonset">DaemonSet</option>
+                </select>
+            </div>
+            
+            <div class="select-item">
+                <label for="workload">工作负载</label>
+                <select id="workload" onchange="loadPods()">
+                    <option value="">请选择工作负载</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="pod-section">
+            <h2>Pod列表</h2>
+            <div id="message"></div>
+            <table id="podTable">
+                <thead>
+                    <tr>
+                        <th>Pod名称</th>
+                        <th>状态</th>
+                        <th>节点IP</th>
+                        <th>Pod IP</th>
+                        <th>创建时间</th>
+                        <th>运行时间</th>
+                        <th>是否已踢出负载</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="8" style="text-align: center; color: #999;">请选择工作负载查看Pod列表</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <script>
+        // 页面加载时获取所有集群
+        window.onload = function() {
+            loadClusters();
+            initializeAutoLogout();
+        };
+
+        // 10分钟不活动自动登出功能
+        let logoutTimer;
+        const INACTIVITY_TIMEOUT = 10 * 60 * 1000; // 10分钟
+
+        function initializeAutoLogout() {
+            // 重置定时器
+            resetLogoutTimer();
+
+            // 监听用户活动事件
+            const activityEvents = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+            activityEvents.forEach(event => {
+                document.addEventListener(event, resetLogoutTimer);
+            });
+        }
+
+        function resetLogoutTimer() {
+            clearTimeout(logoutTimer);
+            logoutTimer = setTimeout(autoLogout, INACTIVITY_TIMEOUT);
+        }
+
+        function autoLogout() {
+            fetch('/api/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(() => {
+                // 自动跳转到登录页面
+                window.location.href = '/login?message=由于长时间不活动，您已自动登出';
+            })
+            .catch(() => {
+                // 即使请求失败，也要跳转到登录页面
+                window.location.href = '/login?message=由于长时间不活动，您已自动登出';
+            });
+        }
+        
+        // 加载集群列表
+        function loadClusters() {
+            fetch('/api/clusters')
+                .then(response => response.json())
+                .then(data => {
+                    const clusterSelect = document.getElementById('cluster');
+                    clusterSelect.innerHTML = '<option value="">请选择集群</option>';
+                    data.forEach(cluster => {
+                        const option = document.createElement('option');
+                        option.value = cluster.name; // 使用集群名称作为值
+                        option.textContent = cluster.display_name; // 显示名称给用户
+                        clusterSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    showMessage('加载集群失败: ' + error.message, 'error');
+                });
+        }
+        
+        // 加载命名空间列表
+        function loadNamespaces() {
+            const cluster = document.getElementById('cluster').value;
+            const namespaceSelect = document.getElementById('namespace');
+            const workloadSelect = document.getElementById('workload');
+            const podTable = document.getElementById('podTable').getElementsByTagName('tbody')[0];
+            
+            namespaceSelect.innerHTML = '<option value="">请选择命名空间</option>';
+            workloadSelect.innerHTML = '<option value="">请选择工作负载</option>';
+            podTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">请选择工作负载查看Pod列表</td></tr>';
+            
+            if (!cluster) return;
+            
+            fetch(`/api/${cluster}/namespaces`)
+                .then(response => response.json())
+                .then(data => {
+                    // 检查返回数据是否为数组
+                    if (Array.isArray(data)) {
+                        data.forEach(namespace => {
+                            const option = document.createElement('option');
+                            option.value = namespace;
+                            option.textContent = namespace;
+                            namespaceSelect.appendChild(option);
+                        });
+                    } else if (data.error) {
+                        // 如果返回的是错误对象，显示错误信息
+                        showMessage('加载命名空间失败: ' + data.error, 'error');
+                    } else {
+                        // 其他情况，显示通用错误
+                        showMessage('加载命名空间失败: 返回数据格式错误', 'error');
+                    }
+                })
+                .catch(error => {
+                    showMessage('加载命名空间失败: ' + error.message, 'error');
+                });
+        }
+        
+        // 加载工作负载列表
+        function loadWorkloads() {
+            const cluster = document.getElementById('cluster').value;
+            const namespace = document.getElementById('namespace').value;
+            const workloadType = document.getElementById('workloadType').value;
+            const workloadSelect = document.getElementById('workload');
+            const podTable = document.getElementById('podTable').getElementsByTagName('tbody')[0];
+            
+            workloadSelect.innerHTML = '<option value="">请选择工作负载</option>';
+            podTable.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #999;">请选择工作负载查看Pod列表</td></tr>';
+            
+            if (!cluster || !namespace) return;
+            
+            let url = `/api/${cluster}/${namespace}/workloads`;
+            if (workloadType) {
+                url += `?type=${workloadType}`;
+            }
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    // 检查返回数据是否为数组
+                    if (Array.isArray(data)) {
+                        data.forEach(workload => {
+                            const option = document.createElement('option');
+                            option.value = JSON.stringify({name: workload.name, type: workload.type});
+                            option.textContent = `${workload.name} (${workload.type})`;
+                            workloadSelect.appendChild(option);
+                        });
+                    } else if (data.error) {
+                        // 如果返回的是错误对象，显示错误信息
+                        showMessage('加载工作负载失败: ' + data.error, 'error');
+                    } else {
+                        // 其他情况，显示通用错误
+                        showMessage('加载工作负载失败: 返回数据格式错误', 'error');
+                    }
+                })
+                .catch(error => {
+                    showMessage('加载工作负载失败: ' + error.message, 'error');
+                });
+        }
+        
+
+        // 加载Pod列表
+        function loadPods() {
+            const cluster = document.getElementById('cluster').value;
+            const namespace = document.getElementById('namespace').value;
+            const workloadOption = document.getElementById('workload').value;
+            const podTable = document.getElementById('podTable').getElementsByTagName('tbody')[0];
+            
+            if (!cluster || !namespace || !workloadOption) {
+                podTable.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #999;">请选择工作负载查看Pod列表</td></tr>';
+                return;
+            }
+            
+            const workload = JSON.parse(workloadOption);
+            
+            fetch(`/api/${cluster}/${namespace}/${workload.type}/${workload.name}/pods`)
+                .then(response => response.json())
+                .then(data => {
+                    // 检查返回数据是否为数组
+                    if (Array.isArray(data)) {
+                        if (data.length === 0) {
+                            podTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">该工作负载下没有Pod</td></tr>';
+                            return;
+                        }
+                        
+                        let rows = '';
+                        data.forEach(pod => {
+                            const hasRemoveload = pod.has_removeload ? '<span class="has-removeload">是</span>' : '<span class="no-removeload">否</span>';
+                            const actionButtons = pod.has_removeload ? 
+                                `<button class="restore" onclick="restoreTraffic('${cluster}', '${namespace}', '${pod.name}')">恢复流量</button>` : 
+                                `<button class="remove" onclick="removeLoad('${cluster}', '${namespace}', '${pod.name}')">踢出负载</button>`;
+                            
+                            rows += `
+                                <tr>
+                                    <td>${pod.name}</td>
+                                    <td><span class="status ${pod.status}">${pod.status}</span></td>
+                                    <td>${pod.node_ip || '-'}</td>
+                                    <td>${pod.pod_ip || '-'}</td>
+                                    <td>${pod.created_time || '-'}</td>
+                                    <td>${pod.running_time || '-'}</td>
+                                    <td>${hasRemoveload}</td>
+                                    <td class="action-buttons">${actionButtons}</td>
+                                </tr>
+                            `;
+                        });
+                        
+                        podTable.innerHTML = rows;
+                    } else if (data.error) {
+                        // 如果返回的是错误对象，显示错误信息
+                        showMessage('加载Pod列表失败: ' + data.error, 'error');
+                        podTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">加载Pod列表失败</td></tr>';
+                    } else {
+                        // 其他情况，显示通用错误
+                        showMessage('加载Pod列表失败: 返回数据格式错误', 'error');
+                        podTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">加载Pod列表失败</td></tr>';
+                    }
+                })
+                .catch(error => {
+                    showMessage('加载Pod列表失败: ' + error.message, 'error');
+                    podTable.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #999;">加载Pod列表失败</td></tr>';
+                });
+        }
+        
+        // 踢出负载
+        function removeLoad(cluster, namespace, podName) {
+            fetch(`/api/${cluster}/${namespace}/pods/${podName}/remove-load`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                    loadPods();
+                } else {
+                    showMessage(data.error || '操作失败', 'error');
+                }
+            })
+            .catch(error => {
+                showMessage('操作失败: ' + error.message, 'error');
+            });
+        }
+        
+        // 恢复流量
+        function restoreTraffic(cluster, namespace, podName) {
+            fetch(`/api/${cluster}/${namespace}/pods/${podName}/restore-traffic`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                    loadPods();
+                } else {
+                    showMessage(data.error || '操作失败', 'error');
+                }
+            })
+            .catch(error => {
+                showMessage('操作失败: ' + error.message, 'error');
+            });
+        }
+        
+        // 显示消息
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.innerHTML = `<div class="message ${type}">${text}</div>`;
+            setTimeout(() => {
+                messageDiv.innerHTML = '';
+            }, 3000);
+        }
+
+        // 登出功能
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            if (confirm('确定要登出吗？')) {
+                fetch('/api/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // 登出成功，跳转到登录页面
+                        window.location.href = '/login';
+                    } else {
+                        showMessage('登出失败: ' + data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    showMessage('登出失败: ' + error.message, 'error');
+                });
+            }
+        });
+
+        // 获取当前用户信息
+        let currentUserInfo = null;
+
+        function getCurrentUser() {
+            fetch('/api/current-user')
+                .then(response => response.json())
+                .then(data => {
+                    currentUserInfo = data;
+                    document.getElementById('currentUser').textContent = `欢迎，${data.username}`;
+                })
+                .catch(error => {
+                    console.error('获取用户信息失败:', error);
+                    document.getElementById('currentUser').textContent = '欢迎，用户';
+                });
+        }
+
+        // 处理集群管理后台链接点击
+        document.getElementById('adminLink').addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            if (!currentUserInfo) {
+                // 如果用户信息还没加载完成，先加载
+                getCurrentUser().then(() => {
+                    checkAdminPermission();
+                });
+            } else {
+                checkAdminPermission();
+            }
+        });
+
+        function checkAdminPermission() {
+            if (currentUserInfo && currentUserInfo.permissions && currentUserInfo.permissions.admin) {
+                // 有管理员权限，跳转到管理后台
+                window.location.href = '/api/admin';
+            } else {
+                // 没有管理员权限，显示提示
+                alert('您当前没有权限进入集群管理后台，请联系管理员。');
+            }
+        }
+
+        // 页面加载时获取当前用户信息
+        getCurrentUser();
+    </script>
+</body>
+</html>
