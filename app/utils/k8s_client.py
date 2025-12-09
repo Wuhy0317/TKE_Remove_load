@@ -52,6 +52,8 @@ class K8sClient:
             return kubernetes.client.CoreV1Api(kubernetes.client.ApiClient(configuration))
         elif client_type == 'apps':
             return kubernetes.client.AppsV1Api(kubernetes.client.ApiClient(configuration))
+        elif client_type == 'version':
+            return kubernetes.client.VersionApi(kubernetes.client.ApiClient(configuration))
         else:
             raise ValueError(f'Unknown client type: {client_type}')
     
@@ -62,6 +64,10 @@ class K8sClient:
     def get_apps_client(self):
         """获取AppsV1Api客户端"""
         return self._get_client('apps')
+    
+    def get_version_client(self):
+        """获取VersionApi客户端"""
+        return self._get_client('version')
     
     def get_config_file(self):
         """获取kubeconfig文件路径"""

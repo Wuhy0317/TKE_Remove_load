@@ -1,1 +1,359 @@
-[]
+[
+  {
+    "timestamp": "2025-12-08T11:21:48.301106",
+    "username": "admin",
+    "action": "login_success",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T11:32:55.296539",
+    "username": "admin",
+    "action": "logout",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T11:47:58.767815",
+    "username": "admin",
+    "action": "login_success",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T12:02:39.976541",
+    "username": "admin",
+    "action": "logout",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T13:53:21.263861",
+    "username": "admin",
+    "action": "login_success",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T13:56:00.529145",
+    "username": "admin",
+    "action": "login_success",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T14:02:25.992943",
+    "username": "admin",
+    "action": "logout",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T14:02:31.412503",
+    "username": "admin",
+    "action": "login_success",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T14:02:35.229725",
+    "username": "admin",
+    "action": "logout",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T14:02:44.547178",
+    "username": "admin",
+    "action": "login_success",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T14:05:50.064098",
+    "username": "admin",
+    "action": "logout",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T14:16:47.387687",
+    "username": "admin",
+    "action": "logout",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T14:18:11.323865",
+    "username": "admin",
+    "action": "login_success",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T14:18:24.264948",
+    "username": "admin",
+    "action": "login_success",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T14:33:57.503925",
+    "username": "admin",
+    "action": "logout",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T14:34:38.254406",
+    "username": "admin",
+    "action": "logout",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T15:04:56.514641",
+    "username": "admin",
+    "action": "login_success",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T15:13:25.276671",
+    "username": "admin",
+    "action": "login_success",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T15:24:39.067399",
+    "username": "admin",
+    "action": "logout",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T15:26:27.872171",
+    "username": "admin",
+    "action": "add_cluster",
+    "resource": "cluster/cls-ajtqiwb9",
+    "details": "display_name=酒店搜索集群"
+  },
+  {
+    "timestamp": "2025-12-08T15:44:22.427494",
+    "username": "admin",
+    "action": "logout",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T15:46:55.127472",
+    "username": "admin",
+    "action": "login_success",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T15:47:22.049822",
+    "username": "admin",
+    "action": "login_success",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T16:21:03.789509",
+    "username": "admin",
+    "action": "remove_load",
+    "resource": "pod/hpa-monitor/nginx-text-67788df5b6-67gvh",
+    "details": "cluster=cls-ajtqiwb9"
+  },
+  {
+    "timestamp": "2025-12-08T16:21:06.536242",
+    "username": "admin",
+    "action": "restore_traffic",
+    "resource": "pod/hpa-monitor/nginx-text-67788df5b6-67gvh",
+    "details": "cluster=cls-ajtqiwb9"
+  },
+  {
+    "timestamp": "2025-12-08T16:21:11.874282",
+    "username": "admin",
+    "action": "remove_load",
+    "resource": "pod/hpa-monitor/nginx-text-67788df5b6-ccf4j",
+    "details": "cluster=cls-ajtqiwb9"
+  },
+  {
+    "timestamp": "2025-12-08T16:21:16.007920",
+    "username": "admin",
+    "action": "restore_traffic",
+    "resource": "pod/hpa-monitor/nginx-text-67788df5b6-ccf4j",
+    "details": "cluster=cls-ajtqiwb9"
+  },
+  {
+    "timestamp": "2025-12-08T16:23:29.315932",
+    "username": "admin",
+    "action": "logout",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T16:31:31.974770",
+    "username": "admin",
+    "action": "logout",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T17:56:24.371858",
+    "username": "admin",
+    "action": "login_success",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T18:09:53.069231",
+    "username": "admin",
+    "action": "logout",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T20:07:58.270718",
+    "username": "admin",
+    "action": "login_success",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T20:17:28.949922",
+    "username": "admin",
+    "action": "login_success",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T20:28:00.296313",
+    "username": "admin",
+    "action": "logout",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T20:33:55.381066",
+    "username": "admin",
+    "action": "logout",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T20:41:17.653541",
+    "username": "admin",
+    "action": "login_success",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T20:42:09.620892",
+    "username": "admin",
+    "action": "add_cluster",
+    "resource": "cluster/cls-3qffq97f",
+    "details": "display_name=酒店微信小程序集群"
+  },
+  {
+    "timestamp": "2025-12-08T20:43:09.819237",
+    "username": "admin",
+    "action": "update_user",
+    "resource": "user/user",
+    "details": "permissions={'admin': False, 'read': True, 'write': False, 'clusters': []}"
+  },
+  {
+    "timestamp": "2025-12-08T20:43:17.309760",
+    "username": "admin",
+    "action": "logout",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T20:43:21.166072",
+    "username": "user",
+    "action": "login_success",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T20:45:55.564922",
+    "username": "user",
+    "action": "logout",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T20:45:59.395644",
+    "username": "admin",
+    "action": "login_success",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T20:46:17.996919",
+    "username": "admin",
+    "action": "logout",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T20:46:21.731345",
+    "username": "user",
+    "action": "login_success",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T20:46:35.827902",
+    "username": "user",
+    "action": "logout",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T20:46:39.496667",
+    "username": "admin",
+    "action": "login_success",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T20:46:49.030034",
+    "username": "admin",
+    "action": "logout",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-08T20:46:53.760819",
+    "username": "user",
+    "action": "login_success",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-09T07:08:53.199846",
+    "username": "user",
+    "action": "logout",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-09T11:36:07.068193",
+    "username": "admin",
+    "action": "login_success",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-09T11:49:13.894989",
+    "username": "admin",
+    "action": "logout",
+    "resource": null,
+    "details": null
+  }
+]

@@ -190,3 +190,23 @@ class K8sService:
             'success': True,
             'message': f'Pod {pod_name} 已恢复流量'
         }
+    
+    def get_cluster_version(self, cluster):
+        """获取指定集群的版本信息"""
+        k8s_client = K8sClient(cluster, self.kubeconfig_dir)
+        version_client = k8s_client.get_version_client()
+        
+        try:
+            version_info = version_client.get_code()
+            return {
+                'major': version_info.major,
+                'minor': version_info.minor,
+                'git_version': version_info.git_version
+            }
+        except Exception as e:
+            print(f"Failed to get cluster version for {cluster}: {e}")
+            return {
+                'major': '0',
+                'minor': '0',
+                'git_version': 'Unknown'
+            }

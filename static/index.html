@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>K8s Pod负载管理工具</title>
+    <title>KubeNav - K8s Pod负载管理工具</title>
     <style>
         /* 全局样式重置和基础设置 */
         * {
@@ -14,13 +14,326 @@
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            margin: 0;
-            padding: 20px;
-            min-height: 100vh;
+            background-color: #f5f7fa;
             color: #333;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
         
+        /* 顶部导航栏样式 */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+        
+        .header-logo {
+            font-size: 24px;
+            font-weight: 700;
+            margin-right: 20px;
+        }
+        
+        .header-version {
+            font-size: 14px;
+            opacity: 0.8;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .user-info {
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        .btn-danger {
+            background-color: #ef4444;
+        }
+        
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+        
+        /* 主体内容区域 */
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        /* 左侧导航栏 */
+        .sidebar {
+            width: 260px;
+            background-color: white;
+            border-right: 1px solid #e2e8f0;
+            padding: 24px 0;
+            overflow-y: auto;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .nav-section {
+            margin-bottom: 32px;
+        }
+        
+        .nav-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 0 24px 12px;
+        }
+        
+        .nav-menu {
+            list-style: none;
+        }
+        
+        .nav-item {
+            margin-bottom: 4px;
+        }
+        
+        .nav-link {
+            display: block;
+            padding: 12px 24px;
+            color: #334155;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .nav-link:hover {
+            background-color: #f1f5f9;
+            color: #667eea;
+        }
+        
+        .nav-link.active {
+            background-color: #f0f4ff;
+            color: #667eea;
+            border-left-color: #667eea;
+        }
+        
+        /* 右侧内容区域 */
+        .content {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            background-color: #f5f7fa;
+        }
+        
+        /* 内容标题 */
+        .content-header {
+            margin-bottom: 32px;
+        }
+        
+        .content-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+        
+        .content-subtitle {
+            font-size: 14px;
+            color: #64748b;
+        }
+        
+        /* 集群卡片样式 */
+        .cluster-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        
+        .cluster-card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            padding: 24px;
+            transition: all 0.3s ease;
+        }
+        
+        .cluster-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+        }
+        
+        .cluster-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .cluster-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        
+        .cluster-status {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+        
+        .cluster-status.active {
+            background-color: #d1fae5;
+            color: #059669;
+        }
+        
+        .cluster-info {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .info-label {
+            font-size: 14px;
+            color: #64748b;
+            font-weight: 500;
+        }
+        
+        .info-value {
+            font-size: 14px;
+            color: #1e293b;
+            font-weight: 600;
+        }
+        
+        /* 空状态样式 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+        }
+        
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        
+        .empty-state-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .empty-state-description {
+            font-size: 14px;
+        }
+        
+        /* 加载状态样式 */
+        .loading-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+        }
+        
+        .loading-spinner {
+            border: 4px solid rgba(102, 126, 234, 0.3);
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 操作按钮组 */
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            justify-content: flex-end;
+        }
+        
+        .btn-primary {
+            background-color: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background-color: #5568d3;
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            background-color: #f1f5f9;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #e2e8f0;
+        }
+        
+        /* 负载管理样式 */
         /* 容器样式 */
         .container {
             max-width: 1400px;
@@ -34,7 +347,7 @@
         /* 标题样式 */
         h1 {
             color: #2c3e50;
-            text-align: center;
+            text-align: left;
             margin-bottom: 30px;
             font-size: 2.2rem;
             font-weight: 600;
@@ -250,8 +563,106 @@
             border: 2px solid #dc2626;
         }
         
+        /* 空状态和加载状态 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+        }
+        
+        .empty-state p {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        
+        .empty-state small {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        /* 用户管理样式 */
+        /* 表格样式 */
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .user-table th {
+            background-color: #667eea;
+            color: white;
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .user-table td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.95rem;
+        }
+        
+        /* 管理按钮样式 */
+        .manage-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-edit {
+            background-color: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-edit:hover {
+            background-color: #5568d3;
+            transform: translateY(-1px);
+        }
+        
+        .btn-delete {
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-delete:hover {
+            background-color: #dc2626;
+            transform: translateY(-1px);
+        }
+        
         /* 响应式设计 */
         @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+            }
+            
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .cluster-section {
+                grid-template-columns: 1fr;
+            }
+            
             .select-section {
                 flex-direction: column;
             }
@@ -278,103 +689,395 @@
                 padding: 8px 12px;
             }
         }
-        
-        /* 空状态和加载状态 */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #64748b;
-        }
-        
-        .empty-state p {
-            font-size: 1.1rem;
-            margin-bottom: 10px;
-        }
-        
-        .empty-state small {
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <div style="flex: 1; text-align: center; margin-left: 150px;">
-                <h1 style="margin: 0;">K8s Pod负载管理工具</h1>
-            </div>
-            <div style="display: flex; gap: 15px; align-items: center;">
-                <span id="currentUser" style="font-weight: bold; color: #666; font-size: 0.95rem;">欢迎，加载中...</span>
-                <a href="#" id="adminLink" class="btn" style="background-color: #2196F3; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: bold;">集群管理后台</a>
-                <button id="logoutBtn" style="background-color: #f44336; color: white; padding: 10px 20px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">登出</button>
-            </div>
+    <!-- 顶部导航栏 -->
+    <header class="header">
+        <div class="header-left">
+            <div class="header-logo">KubeNav</div>
+            <div class="header-version">v1.1</div>
         </div>
+        <div class="header-right">
+                <div class="user-info">
+                    <span>👤</span>
+                    <span id="currentUsername">admin</span>
+                </div>
+                <button id="logoutBtn" class="btn btn-danger">登出</button>
+            </div>
+    </header>
+    
+    <!-- 主体内容区域 -->
+    <div class="main-content">
+        <!-- 左侧导航栏 -->
+        <aside class="sidebar">
+            <nav>
+                <div class="nav-section">
+                    <div class="nav-title">核心功能</div>
+                    <ul class="nav-menu">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link active" id="clusterNav">Kubernetes集群</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" id="loadNav">负载管理</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" id="userNav">用户管理</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" id="logNav">日志管理</a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
         
-        <div class="select-section">
-            <div class="select-item">
-                <label for="cluster">K8s集群</label>
-                <select id="cluster" onchange="loadNamespaces()">
-                    <option value="">请选择集群</option>
-                </select>
+        <!-- 右侧内容区域 -->
+        <main class="content">
+            <!-- 集群管理内容 -->
+            <div id="clusterContent" style="display: block;">
+                <!-- 内容标题 -->
+                <div class="content-header">
+                    <h1 class="content-title">Kubernetes集群</h1>
+                    <p class="content-subtitle">管理和监控所有Kubernetes集群</p>
+                    <div style="margin-top: 16px;">
+                        <button class="btn-primary" onclick="addCluster()">添加集群</button>
+                    </div>
+                </div>
+                
+                <!-- 集群列表 -->
+                <div class="cluster-section" id="clusterSection">
+                    <div class="loading-state">
+                        <div class="loading-spinner"></div>
+                        <p>正在加载集群列表...</p>
+                    </div>
+                </div>
             </div>
             
-            <div class="select-item">
-                <label for="namespace">命名空间</label>
-                <select id="namespace" onchange="loadWorkloads()">
-                    <option value="">请选择命名空间</option>
-                </select>
+            <!-- 负载管理内容 -->
+            <div id="loadContent" style="display: none;">
+                <div class="container">
+                    <div class="content-header">
+                        <h1 class="content-title">负载管理</h1>
+                        <p class="content-subtitle">管理Kubernetes集群中的Pod负载</p>
+                    </div>
+                    
+                    <div class="select-section">
+                        <div class="select-item">
+                            <label for="cluster">K8s集群</label>
+                            <select id="cluster" onchange="loadNamespaces()">
+                                <option value="">请选择集群</option>
+                            </select>
+                        </div>
+                        
+                        <div class="select-item">
+                            <label for="namespace">命名空间</label>
+                            <select id="namespace" onchange="loadWorkloads()">
+                                <option value="">请选择命名空间</option>
+                            </select>
+                        </div>
+                        
+                        <div class="select-item">
+                            <label for="workloadType">工作负载类型</label>
+                            <select id="workloadType" onchange="loadWorkloads()">
+                                <option value="">全部类型</option>
+                                <option value="deployment">Deployment</option>
+                                <option value="statefulset">StatefulSet</option>
+                                <option value="daemonset">DaemonSet</option>
+                            </select>
+                        </div>
+                        
+                        <div class="select-item">
+                            <label for="workload">工作负载</label>
+                            <select id="workload" onchange="loadPods()">
+                                <option value="">请选择工作负载</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="pod-section">
+                        <h2>Pod列表</h2>
+                        <div id="message"></div>
+                        <table id="podTable">
+                            <thead>
+                                <tr>
+                                    <th>Pod名称</th>
+                                    <th>状态</th>
+                                    <th>节点IP</th>
+                                    <th>Pod IP</th>
+                                    <th>创建时间</th>
+                                    <th>运行时间</th>
+                                    <th>是否已踢出负载</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="8" style="text-align: center; color: #999;">请选择工作负载查看Pod列表</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
             
-            <div class="select-item">
-                <label for="workloadType">工作负载类型</label>
-                <select id="workloadType" onchange="loadWorkloads()">
-                    <option value="">全部类型</option>
-                    <option value="deployment">Deployment</option>
-                    <option value="statefulset">StatefulSet</option>
-                    <option value="daemonset">DaemonSet</option>
-                </select>
+            <!-- 用户管理内容 -->
+            <div id="userContent" style="display: none;">
+                <!-- 内容标题 -->
+                <div class="content-header">
+                    <h1 class="content-title">用户管理</h1>
+                    <p class="content-subtitle">管理系统用户和权限</p>
+                    <div style="margin-top: 16px;">
+                        <button class="btn-primary" onclick="openAddUserModal()">添加用户</button>
+                    </div>
+                </div>
+                
+                <!-- 用户列表 -->
+                <div class="container">
+                    <div id="userMessage"></div>
+                    <table class="user-table" id="userTable">
+                        <thead>
+                            <tr>
+                                <th>用户名</th>
+                                <th>管理员权限</th>
+                                <th>读权限</th>
+                                <th>写权限</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: #999;">加载用户列表...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
             
-            <div class="select-item">
-                <label for="workload">工作负载</label>
-                <select id="workload" onchange="loadPods()">
-                    <option value="">请选择工作负载</option>
-                </select>
+            <!-- 日志管理内容 -->
+            <div id="logContent" style="display: none;">
+                <!-- 内容标题 -->
+                <div class="content-header">
+                    <h1 class="content-title">日志管理</h1>
+                    <p class="content-subtitle">查看和管理系统操作日志</p>
+                    <div style="margin-top: 16px; display: flex; gap: 16px; align-items: flex-start;">
+                        <div>
+                            <label for="logActionFilter" style="margin-right: 8px; font-weight: 600;">操作类型:</label>
+                            <select id="logActionFilter" onchange="loadLogs()" style="padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                                <option value="">所有操作</option>
+                                <option value="login_success">登录成功</option>
+                                <option value="login_failed">登录失败</option>
+                                <option value="logout">登出</option>
+                                <option value="remove_load">踢出负载</option>
+                                <option value="restore_traffic">恢复流量</option>
+                                <option value="add_user">添加用户</option>
+                                <option value="update_user">更新用户</option>
+                                <option value="delete_user">删除用户</option>
+                                <option value="add_cluster">添加集群</option>
+                                <option value="update_cluster">更新集群</option>
+                                <option value="delete_cluster">删除集群</option>
+                            </select>
+                        </div>
+                        <div style="flex: 1; max-width: 300px; margin-top: 26px;">
+                            <input type="text" id="logSearch" placeholder="搜索用户名..." onkeyup="handleLogSearch()" style="width: 100%; padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                        </div>
+                        <button class="btn-primary" onclick="loadLogs()" style="margin-top: 24px;">刷新</button>
+                    </div>
+                </div>
+                
+                <!-- 日志列表 -->
+                <div class="container">
+                    <div id="logMessage"></div>
+                    <table class="user-table" id="logsTable">
+                        <thead>
+                            <tr>
+                                <th>时间</th>
+                                <th>用户名</th>
+                                <th>操作类型</th>
+                                <th>操作资源</th>
+                                <th>详细信息</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: #999;">加载日志列表...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
+        </main>
+    </div>
+    
+    <!-- 添加用户模态框 -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeUserModal()">&times;</span>
+            <h3 id="userModalTitle">添加用户</h3>
+            <form id="userForm">
+                <input type="hidden" id="editUsername">
+                
+                <div class="form-group">
+                    <label for="username">用户名 *</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">密码 * <small>(编辑时留空表示不修改密码，输入新密码表示修改密码)</small></label>
+                    <input type="password" id="password" name="password" placeholder="密码">
+                </div>
+                
+                <div class="permissions-section">
+                    <div class="permissions-title">全局权限设置</div>
+                    <div class="permissions-grid">
+                        <div class="permission-item">
+                            <input type="checkbox" id="adminPermission" name="adminPermission" value="true">
+                            <label for="adminPermission">
+                                全局管理员权限
+                            </label>
+                        </div>
+                        <div class="permission-item">
+                            <input type="checkbox" id="readPermission" name="readPermission" value="true">
+                            <label for="readPermission">
+                                全局读权限
+                            </label>
+                        </div>
+                        <div class="permission-item">
+                            <input type="checkbox" id="writePermission" name="writePermission" value="true">
+                            <label for="writePermission">
+                                全局写权限
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="permissions-section">
+                    <div class="permissions-title">集群权限设置</div>
+                    <div id="clusterPermissions" style="margin-bottom: 20px;">
+                        <div style="text-align: center; color: #64748b; padding: 20px;">加载集群列表中...</div>
+                    </div>
+                </div>
+                
+                <div style="text-align: right; margin-top: 20px;">
+                    <button type="button" class="btn" style="background-color: #f5f5f5; color: #333; margin-right: 10px;" onclick="closeUserModal()">取消</button>
+                    <button type="submit" class="btn-primary">保存</button>
+                </div>
+            </form>
         </div>
-        
-        <div class="pod-section">
-            <h2>Pod列表</h2>
-            <div id="message"></div>
-            <table id="podTable">
-                <thead>
-                    <tr>
-                        <th>Pod名称</th>
-                        <th>状态</th>
-                        <th>节点IP</th>
-                        <th>Pod IP</th>
-                        <th>创建时间</th>
-                        <th>运行时间</th>
-                        <th>是否已踢出负载</th>
-                        <th>操作</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td colspan="8" style="text-align: center; color: #999;">请选择工作负载查看Pod列表</td>
-                    </tr>
-                </tbody>
-            </table>
+    </div>
+    
+    <!-- 添加集群模态框 -->
+    <div id="clusterModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeClusterModal()">&times;</span>
+            <h3 id="clusterModalTitle">添加集群</h3>
+            <form id="clusterForm">
+                <input type="hidden" id="editClusterName">
+                
+                <div class="form-group">
+                    <label for="clusterName">集群名称 *</label>
+                    <input type="text" id="clusterName" name="clusterName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="displayName">显示名称 *</label>
+                    <input type="text" id="displayName" name="displayName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="kubeconfigContent">Kubeconfig内容 *</label>
+                    <textarea id="kubeconfigContent" name="kubeconfigContent" rows="10" required placeholder="请粘贴完整的kubeconfig内容"></textarea>
+                </div>
+                
+                <div style="text-align: right; margin-top: 20px;">
+                    <button type="button" class="btn" style="background-color: #f5f5f5; color: #333; margin-right: 10px;" onclick="closeClusterModal()">取消</button>
+                    <button type="submit" class="btn-primary">保存</button>
+                </div>
+            </form>
         </div>
     </div>
     
     <script>
+        // 当前激活的内容模块
+        let activeModule = 'cluster';
+        
         // 页面加载时获取所有集群
         window.onload = function() {
-            loadClusters();
-            initializeAutoLogout();
+            initialize();
         };
-
+        
+        function initialize() {
+            // 初始化导航事件
+            initNavigation();
+            
+            // 初始化自动登出
+            initializeAutoLogout();
+            
+            // 初始化当前用户
+            getCurrentUser();
+            
+            // 加载默认模块内容
+            loadClusterContent();
+        }
+        
+        // 初始化导航
+        function initNavigation() {
+            // 集群管理导航
+            document.getElementById('clusterNav').addEventListener('click', function(e) {
+                e.preventDefault();
+                switchModule('cluster');
+            });
+            
+            // 负载管理导航
+            document.getElementById('loadNav').addEventListener('click', function(e) {
+                e.preventDefault();
+                switchModule('load');
+            });
+            
+            // 用户管理导航
+            document.getElementById('userNav').addEventListener('click', function(e) {
+                e.preventDefault();
+                switchModule('user');
+            });
+            
+            // 日志管理导航
+            document.getElementById('logNav').addEventListener('click', function(e) {
+                e.preventDefault();
+                switchModule('log');
+            });
+        }
+        
+        // 切换模块
+        function switchModule(moduleName) {
+            // 更新导航状态
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            document.getElementById(`${moduleName}Nav`).classList.add('active');
+            
+            // 隐藏所有内容
+            document.getElementById('clusterContent').style.display = 'none';
+            document.getElementById('loadContent').style.display = 'none';
+            document.getElementById('userContent').style.display = 'none';
+            document.getElementById('logContent').style.display = 'none';
+            
+            // 显示对应内容
+            switch(moduleName) {
+                case 'cluster':
+                    loadClusterContent();
+                    break;
+                case 'load':
+                    loadLoadContent();
+                    break;
+                case 'user':
+                    loadUserContent();
+                    break;
+                case 'log':
+                    loadLogContent();
+                    break;
+            }
+            
+            activeModule = moduleName;
+        }
+        
         // 10分钟不活动自动登出功能
         let logoutTimer;
         const INACTIVITY_TIMEOUT = 10 * 60 * 1000; // 10分钟
@@ -412,8 +1115,230 @@
             });
         }
         
+        // 加载集群内容
+        function loadClusterContent() {
+            document.getElementById('clusterContent').style.display = 'block';
+            loadClusters();
+        }
+        
         // 加载集群列表
         function loadClusters() {
+            fetch('/api/clusters')
+                .then(response => response.json())
+                .then(data => {
+                    const clusterSection = document.getElementById('clusterSection');
+                    
+                    if (Array.isArray(data) && data.length > 0) {
+                        let clusterHTML = '';
+                        data.forEach(cluster => {
+                            // 使用API返回的真实集群版本
+                            const version = cluster.version || 'Unknown';
+                            // 硬编码的添加时间（实际应该从集群配置或API获取）
+                            const addedTime = '2024-12-05 16:00';
+                            
+                            clusterHTML += `
+                                <div class="cluster-card">
+                                    <div class="cluster-header">
+                                        <div class="cluster-name">${cluster.display_name || cluster.name}</div>
+                                        <div class="cluster-status active">活跃</div>
+                                    </div>
+                                    <div class="cluster-info">
+                                        <div class="info-item">
+                                            <span class="info-label">集群名称</span>
+                                            <span class="info-value">${cluster.name}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">集群版本</span>
+                                            <span class="info-value">${version}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">添加时间</span>
+                                            <span class="info-value">${addedTime}</span>
+                                        </div>
+                                    </div>
+                                    <div class="action-buttons">
+                                        <button class="btn-primary" onclick="viewCluster('${cluster.name}')">查看详情</button>
+                                        <button class="btn-edit" onclick="editCluster('${cluster.name}')">编辑</button>
+                                        <button class="btn-delete" onclick="deleteCluster('${cluster.name}')">删除</button>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        
+                        clusterSection.innerHTML = clusterHTML;
+                    } else {
+                        clusterSection.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-state-icon">📦</div>
+                                <div class="empty-state-title">暂无集群</div>
+                                <div class="empty-state-description">请添加Kubernetes集群以开始管理</div>
+                                <div style="margin-top: 20px;">
+                                    <button class="btn-primary" onclick="addCluster()">添加集群</button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    const clusterSection = document.getElementById('clusterSection');
+                    clusterSection.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">❌</div>
+                            <div class="empty-state-title">加载失败</div>
+                            <div class="empty-state-description">无法加载集群列表，请稍后重试</div>
+                            <div style="margin-top: 20px;">
+                                <button class="btn-primary" onclick="loadClusters()">重试</button>
+                            </div>
+                        </div>
+                    `;
+                });
+        }
+        
+        // 集群操作函数
+        function viewCluster(clusterName) {
+            console.log('查看集群:', clusterName);
+        }
+        
+        function manageCluster(clusterName) {
+            console.log('管理集群:', clusterName);
+        }
+        
+        // 打开添加集群模态框
+        function addCluster() {
+            document.getElementById('clusterModalTitle').textContent = '添加集群';
+            document.getElementById('clusterForm').reset();
+            document.getElementById('editClusterName').value = '';
+            document.getElementById('clusterModal').style.display = 'block';
+        }
+        
+        // 关闭集群模态框
+        function closeClusterModal() {
+            document.getElementById('clusterModal').style.display = 'none';
+        }
+        
+        // 编辑集群功能
+        function editCluster(clusterName) {
+            fetch(`/api/admin/clusters/${clusterName}`)
+                .then(response => response.json())
+                .then(cluster => {
+                    document.getElementById('clusterModalTitle').textContent = '编辑集群';
+                    document.getElementById('editClusterName').value = cluster.name;
+                    document.getElementById('clusterName').value = cluster.name;
+                    document.getElementById('clusterName').disabled = true;
+                    document.getElementById('displayName').value = cluster.display_name;
+                    document.getElementById('kubeconfigContent').value = cluster.kubeconfig_content;
+                    document.getElementById('clusterModal').style.display = 'block';
+                })
+                .catch(error => {
+                    alert('加载集群配置失败: ' + error.message);
+                });
+        }
+        
+        // 删除集群功能
+        function deleteCluster(clusterName) {
+            if (confirm(`确定要删除集群 "${clusterName}" 吗？`)) {
+                fetch(`/api/admin/clusters/${clusterName}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        // 重新加载集群列表
+                        if (activeModule === 'cluster') {
+                            loadClusters();
+                        }
+                        if (activeModule === 'load') {
+                            loadClustersForLoad();
+                        }
+                    } else {
+                        alert('删除集群失败: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('删除集群失败: ' + error.message);
+                });
+            }
+        }
+        
+        // 集群表单提交处理
+        document.getElementById('clusterForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const editClusterName = document.getElementById('editClusterName').value;
+            const clusterName = document.getElementById('clusterName').value;
+            const displayName = document.getElementById('displayName').value;
+            const kubeconfigContent = document.getElementById('kubeconfigContent').value;
+            
+            // 构建请求数据
+            const requestData = {
+                name: clusterName,
+                display_name: displayName,
+                kubeconfig_content: kubeconfigContent
+            };
+            
+            let url = '/api/admin/clusters';
+            let method = 'POST';
+            
+            // 如果是编辑模式，使用PUT请求
+            if (editClusterName) {
+                url = `/api/admin/clusters/${editClusterName}`;
+                method = 'PUT';
+            }
+            
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 显示成功消息
+                    alert(data.message);
+                    closeClusterModal();
+                    // 重新加载集群列表
+                    if (activeModule === 'cluster') {
+                        loadClusters();
+                    }
+                    if (activeModule === 'load') {
+                        loadClustersForLoad();
+                        
+                    }
+                } else {
+                    // 显示错误消息
+                    alert('操作失败: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('操作失败: ' + error.message);
+            });
+        });
+        
+        // 关闭集群模态框时恢复输入框状态
+        function closeClusterModal() {
+            document.getElementById('clusterModal').style.display = 'none';
+            document.getElementById('clusterName').disabled = false;
+        }
+        
+        // 点击模态框外部关闭模态框
+        window.addEventListener('click', function(event) {
+            const clusterModal = document.getElementById('clusterModal');
+            if (event.target == clusterModal) {
+                closeClusterModal();
+            }
+        });
+        
+        // 加载负载管理内容
+        function loadLoadContent() {
+            document.getElementById('loadContent').style.display = 'block';
+            loadClustersForLoad();
+        }
+        
+        // 加载集群列表（负载管理）
+        function loadClustersForLoad() {
             fetch('/api/clusters')
                 .then(response => response.json())
                 .then(data => {
@@ -421,8 +1346,8 @@
                     clusterSelect.innerHTML = '<option value="">请选择集群</option>';
                     data.forEach(cluster => {
                         const option = document.createElement('option');
-                        option.value = cluster.name; // 使用集群名称作为值
-                        option.textContent = cluster.display_name; // 显示名称给用户
+                        option.value = cluster.name;
+                        option.textContent = cluster.display_name || cluster.name;
                         clusterSelect.appendChild(option);
                     });
                 })
@@ -447,19 +1372,22 @@
             fetch(`/api/${cluster}/namespaces`)
                 .then(response => response.json())
                 .then(data => {
-                    // 检查返回数据是否为数组
                     if (Array.isArray(data)) {
+                        // 成功获取命名空间列表
                         data.forEach(namespace => {
                             const option = document.createElement('option');
                             option.value = namespace;
                             option.textContent = namespace;
                             namespaceSelect.appendChild(option);
                         });
+                    } else if (data.success === false) {
+                        // 服务器返回了错误信息
+                        showMessage(data.message, 'error');
                     } else if (data.error) {
-                        // 如果返回的是错误对象，显示错误信息
+                        // 旧格式的错误信息
                         showMessage('加载命名空间失败: ' + data.error, 'error');
                     } else {
-                        // 其他情况，显示通用错误
+                        // 其他格式错误
                         showMessage('加载命名空间失败: 返回数据格式错误', 'error');
                     }
                 })
@@ -477,7 +1405,7 @@
             const podTable = document.getElementById('podTable').getElementsByTagName('tbody')[0];
             
             workloadSelect.innerHTML = '<option value="">请选择工作负载</option>';
-            podTable.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #999;">请选择工作负载查看Pod列表</td></tr>';
+            podTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">请选择工作负载查看Pod列表</td></tr>';
             
             if (!cluster || !namespace) return;
             
@@ -489,7 +1417,6 @@
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
-                    // 检查返回数据是否为数组
                     if (Array.isArray(data)) {
                         data.forEach(workload => {
                             const option = document.createElement('option');
@@ -497,11 +1424,14 @@
                             option.textContent = `${workload.name} (${workload.type})`;
                             workloadSelect.appendChild(option);
                         });
+                    } else if (data.success === false) {
+                        // 服务器返回了错误信息
+                        showMessage(data.message, 'error');
                     } else if (data.error) {
-                        // 如果返回的是错误对象，显示错误信息
+                        // 旧格式的错误信息
                         showMessage('加载工作负载失败: ' + data.error, 'error');
                     } else {
-                        // 其他情况，显示通用错误
+                        // 其他格式错误
                         showMessage('加载工作负载失败: 返回数据格式错误', 'error');
                     }
                 })
@@ -510,7 +1440,6 @@
                 });
         }
         
-
         // 加载Pod列表
         function loadPods() {
             const cluster = document.getElementById('cluster').value;
@@ -519,7 +1448,7 @@
             const podTable = document.getElementById('podTable').getElementsByTagName('tbody')[0];
             
             if (!cluster || !namespace || !workloadOption) {
-                podTable.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #999;">请选择工作负载查看Pod列表</td></tr>';
+                podTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">请选择工作负载查看Pod列表</td></tr>';
                 return;
             }
             
@@ -528,7 +1457,6 @@
             fetch(`/api/${cluster}/${namespace}/${workload.type}/${workload.name}/pods`)
                 .then(response => response.json())
                 .then(data => {
-                    // 检查返回数据是否为数组
                     if (Array.isArray(data)) {
                         if (data.length === 0) {
                             podTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">该工作负载下没有Pod</td></tr>';
@@ -557,19 +1485,23 @@
                         });
                         
                         podTable.innerHTML = rows;
+                    } else if (data.success === false) {
+                        // 服务器返回了错误信息
+                        showMessage(data.message, 'error');
+                        podTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">加载Pod列表失败</td></tr>';
                     } else if (data.error) {
-                        // 如果返回的是错误对象，显示错误信息
+                        // 旧格式的错误信息
                         showMessage('加载Pod列表失败: ' + data.error, 'error');
                         podTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">加载Pod列表失败</td></tr>';
                     } else {
-                        // 其他情况，显示通用错误
+                        // 其他格式错误
                         showMessage('加载Pod列表失败: 返回数据格式错误', 'error');
                         podTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">加载Pod列表失败</td></tr>';
                     }
                 })
                 .catch(error => {
                     showMessage('加载Pod列表失败: ' + error.message, 'error');
-                    podTable.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #999;">加载Pod列表失败</td></tr>';
+                    podTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">加载Pod列表失败</td></tr>';
                 });
         }
         
@@ -625,7 +1557,371 @@
                 messageDiv.innerHTML = '';
             }, 3000);
         }
+        
+        // 加载用户管理内容
+        function loadUserContent() {
+            document.getElementById('userContent').style.display = 'block';
+            loadUsers();
+        }
+        
+        // 加载用户列表
+        function loadUsers() {
+            fetch('/api/admin/users')
+                .then(response => response.json())
+                .then(data => {
+                    const userTable = document.getElementById('userTable').getElementsByTagName('tbody')[0];
+                    
+                    if (Array.isArray(data) && data.length > 0) {
+                        let rows = '';
+                        data.forEach(user => {
+                            rows += `
+                                <tr>
+                                    <td>${user.username}</td>
+                                    <td>${user.permissions.admin ? '是' : '否'}</td>
+                                    <td>${user.permissions.read ? '是' : '否'}</td>
+                                    <td>${user.permissions.write ? '是' : '否'}</td>
+                                    <td class="manage-buttons">
+                                        <button class="btn-edit" onclick="openEditUserModal('${user.username}')">编辑</button>
+                                        <button class="btn-delete" onclick="deleteUser('${user.username}')">删除</button>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        userTable.innerHTML = rows;
+                    } else {
+                        userTable.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">没有用户配置</td></tr>';
+                    }
+                })
+                .catch(error => {
+                    showUserMessage('加载用户列表失败: ' + error.message, 'error');
+                    const userTable = document.getElementById('userTable').getElementsByTagName('tbody')[0];
+                    userTable.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">加载用户列表失败</td></tr>';
+                });
+        }
+        
+        // 显示用户消息
+        function showUserMessage(text, type) {
+            const messageDiv = document.getElementById('userMessage');
+            messageDiv.innerHTML = `<div class="message ${type}">${text}</div>`;
+            setTimeout(() => {
+                messageDiv.innerHTML = '';
+            }, 3000);
+        }
+        
+        // 加载集群列表用于权限设置
+        function loadClustersForPermissions() {
+            fetch('/api/clusters')
+                .then(response => response.json())
+                .then(data => {
+                    const clusterPermissionsDiv = document.getElementById('clusterPermissions');
+                    
+                    if (Array.isArray(data) && data.length > 0) {
+                        let clusterHTML = '<div class="permissions-grid">';
+                        data.forEach(cluster => {
+                            clusterHTML += `
+                                <div class="permission-item">
+                                    <input type="checkbox" id="cluster_${cluster.name}" name="clusterPermission" value="${cluster.name}">
+                                    <label for="cluster_${cluster.name}">
+                                        ${cluster.display_name || cluster.name}
+                                    </label>
+                                </div>
+                            `;
+                        });
+                        clusterHTML += '</div>';
+                        clusterPermissionsDiv.innerHTML = clusterHTML;
+                    } else {
+                        clusterPermissionsDiv.innerHTML = '<div style="text-align: center; color: #64748b; padding: 20px;">暂无集群</div>';
+                    }
+                })
+                .catch(error => {
+                    const clusterPermissionsDiv = document.getElementById('clusterPermissions');
+                    clusterPermissionsDiv.innerHTML = '<div style="text-align: center; color: #dc2626; padding: 20px;">加载集群列表失败</div>';
+                });
+        }
+        
+        // 打开添加用户模态框
+        function openAddUserModal() {
+            document.getElementById('userModalTitle').textContent = '添加用户';
+            document.getElementById('userForm').reset();
+            document.getElementById('editUsername').value = '';
+            document.getElementById('username').disabled = false;
+            document.getElementById('userModal').style.display = 'block';
+            loadClustersForPermissions();
+        }
+        
+        // 打开编辑用户模态框
+        function openEditUserModal(username) {
+            fetch(`/api/admin/users/${username}`)
+                .then(response => response.json())
+                .then(user => {
+                    document.getElementById('userModalTitle').textContent = '编辑用户';
+                    document.getElementById('editUsername').value = user.username;
+                    document.getElementById('username').value = user.username;
+                    document.getElementById('username').disabled = true;
+                    document.getElementById('password').value = '';
+                    document.getElementById('adminPermission').checked = user.permissions.admin || false;
+                    document.getElementById('readPermission').checked = user.permissions.read || false;
+                    document.getElementById('writePermission').checked = user.permissions.write || false;
+                    document.getElementById('userModal').style.display = 'block';
+                    
+                    // 加载集群列表并设置用户已有的集群权限
+                    fetch('/api/clusters')
+                        .then(response => response.json())
+                        .then(clusters => {
+                            const clusterPermissionsDiv = document.getElementById('clusterPermissions');
+                            
+                            if (Array.isArray(clusters) && clusters.length > 0) {
+                                let clusterHTML = '<div class="permissions-grid">';
+                                clusters.forEach(cluster => {
+                                    const hasPermission = user.permissions.clusters && user.permissions.clusters.includes(cluster.name);
+                                    clusterHTML += `
+                                        <div class="permission-item">
+                                            <input type="checkbox" id="cluster_${cluster.name}" name="clusterPermission" value="${cluster.name}" ${hasPermission ? 'checked' : ''}>
+                                            <label for="cluster_${cluster.name}">
+                                                ${cluster.display_name || cluster.name}
+                                            </label>
+                                        </div>
+                                    `;
+                                });
+                                clusterHTML += '</div>';
+                                clusterPermissionsDiv.innerHTML = clusterHTML;
+                            } else {
+                                clusterPermissionsDiv.innerHTML = '<div style="text-align: center; color: #64748b; padding: 20px;">暂无集群</div>';
+                            }
+                        })
+                        .catch(error => {
+                            const clusterPermissionsDiv = document.getElementById('clusterPermissions');
+                            clusterPermissionsDiv.innerHTML = '<div style="text-align: center; color: #dc2626; padding: 20px;">加载集群列表失败</div>';
+                        });
+                })
+                .catch(error => {
+                    showUserMessage('加载用户配置失败: ' + error.message, 'error');
+                });
+        }
+        
+        // 关闭用户模态框
+        function closeUserModal() {
+            document.getElementById('userModal').style.display = 'none';
+            document.getElementById('username').disabled = false;
+        }
+        
+        // 用户表单提交处理
+        document.getElementById('userForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const editUsername = document.getElementById('editUsername').value;
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const adminPermission = document.getElementById('adminPermission').checked;
+            const readPermission = document.getElementById('readPermission').checked;
+            const writePermission = document.getElementById('writePermission').checked;
+            
+            // 收集选中的集群权限
+            const selectedClusters = [];
+            const clusterCheckboxes = document.querySelectorAll('input[name="clusterPermission"]:checked');
+            clusterCheckboxes.forEach(checkbox => {
+                selectedClusters.push(checkbox.value);
+            });
+            
+            // 构建权限对象
+            const permissions = {
+                admin: adminPermission,
+                read: readPermission,
+                write: writePermission,
+                clusters: selectedClusters
+            };
+            
+            // 构建请求数据
+            const requestData = {
+                username: username,
+                permissions: permissions
+            };
+            
+            // 只有在添加用户或修改密码时才包含密码字段
+            if (password || !editUsername) {
+                requestData.password = password;
+            }
+            
+            let url = '/api/admin/users';
+            let method = 'POST';
+            
+            if (editUsername) {
+                url = `/api/admin/users/${editUsername}`;
+                method = 'PUT';
+            }
+            
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showUserMessage(data.message, 'success');
+                    closeUserModal();
+                    loadUsers();
+                } else {
+                    showUserMessage(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showUserMessage('保存失败: ' + error.message, 'error');
+            });
+        });
+        
+        // 删除用户
+        function deleteUser(username) {
+            if (confirm(`确定要删除用户 "${username}" 吗？`)) {
+                fetch(`/api/admin/users/${username}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showUserMessage(data.message, 'success');
+                        loadUsers();
+                    } else {
+                        showUserMessage(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    showUserMessage('删除失败: ' + error.message, 'error');
+                });
+            }
+        }
+        
+        // 日志管理相关变量
+        let logsData = [];
+        
+        // 加载日志管理内容
+        function loadLogContent() {
+            document.getElementById('logContent').style.display = 'block';
+            loadLogs();
+        }
+        
+        // 加载日志列表
+        function loadLogs() {
+            const actionFilter = document.getElementById('logActionFilter').value;
+            let url = '/api/admin/logs';
+            
+            if (actionFilter) {
+                url += `?action=${actionFilter}`;
+            }
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    logsData = data;
+                    displayLogs(data);
+                })
+                .catch(error => {
+                    showLogMessage('加载日志列表失败: ' + error.message, 'error');
+                    const logsTable = document.getElementById('logsTable').getElementsByTagName('tbody')[0];
+                    logsTable.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">加载日志列表失败</td></tr>';
+                });
+        }
+        
+        // 显示日志列表
+        function displayLogs(logs) {
+            const logsTable = document.getElementById('logsTable').getElementsByTagName('tbody')[0];
+            
+            if (Array.isArray(logs) && logs.length > 0) {
+                // 按时间倒序排序
+                logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                
+                let rows = '';
+                logs.forEach(log => {
+                    rows += `
+                        <tr>
+                            <td>${formatTimestamp(log.timestamp)}</td>
+                            <td>${log.username}</td>
+                            <td>${formatAction(log.action)}</td>
+                            <td>${log.resource || '-'}</td>
+                            <td>${log.details || '-'}</td>
+                        </tr>
+                    `;
+                });
+                logsTable.innerHTML = rows;
+            } else {
+                logsTable.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">没有日志记录</td></tr>';
+            }
+        }
+        
+        // 格式化时间戳
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+        
+        // 格式化操作类型
+        function formatAction(action) {
+            const actionMap = {
+                'login_success': '登录成功',
+                'login_failed': '登录失败',
+                'logout': '登出',
+                'remove_load': '踢出负载',
+                'restore_traffic': '恢复流量',
+                'add_user': '添加用户',
+                'update_user': '更新用户',
+                'delete_user': '删除用户',
+                'add_cluster': '添加集群',
+                'update_cluster': '更新集群',
+                'delete_cluster': '删除集群'
+            };
+            return actionMap[action] || action;
+        }
+        
+        // 显示日志消息
+        function showLogMessage(text, type) {
+            const messageDiv = document.getElementById('logMessage');
+            messageDiv.innerHTML = `<div class="message ${type}">${text}</div>`;
+            setTimeout(() => {
+                messageDiv.innerHTML = '';
+            }, 3000);
+        }
+        
+        // 处理日志搜索
+        function handleLogSearch() {
+            const searchTerm = document.getElementById('logSearch').value.toLowerCase();
+            
+            if (!searchTerm) {
+                displayLogs(logsData);
+                return;
+            }
+            
+            const filteredLogs = logsData.filter(log => 
+                log.username.toLowerCase().includes(searchTerm)
+            );
+            
+            displayLogs(filteredLogs);
+        }
+        
+        // 获取当前用户信息
+        let currentUserInfo = null;
 
+        function getCurrentUser() {
+            fetch('/api/current-user')
+                .then(response => response.json())
+                .then(data => {
+                    currentUserInfo = data;
+                    // 更新显示的用户名
+                    document.getElementById('currentUsername').textContent = data.username;
+                })
+                .catch(error => {
+                    console.error('获取用户信息失败:', error);
+                });
+        }
+        
         // 登出功能
         document.getElementById('logoutBtn').addEventListener('click', function() {
             if (confirm('确定要登出吗？')) {
@@ -638,60 +1934,155 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // 登出成功，跳转到登录页面
                         window.location.href = '/login';
                     } else {
-                        showMessage('登出失败: ' + data.message, 'error');
+                        alert('登出失败: ' + data.message);
                     }
                 })
                 .catch(error => {
-                    showMessage('登出失败: ' + error.message, 'error');
+                    alert('登出失败: ' + error.message);
                 });
             }
         });
-
-        // 获取当前用户信息
-        let currentUserInfo = null;
-
-        function getCurrentUser() {
-            fetch('/api/current-user')
-                .then(response => response.json())
-                .then(data => {
-                    currentUserInfo = data;
-                    document.getElementById('currentUser').textContent = `欢迎，${data.username}`;
-                })
-                .catch(error => {
-                    console.error('获取用户信息失败:', error);
-                    document.getElementById('currentUser').textContent = '欢迎，用户';
-                });
-        }
-
-        // 处理集群管理后台链接点击
-        document.getElementById('adminLink').addEventListener('click', function(e) {
-            e.preventDefault();
+        
+        // 点击模态框外部关闭模态框
+        window.onclick = function(event) {
+            const userModal = document.getElementById('userModal');
+            if (event.target == userModal) {
+                closeUserModal();
+            }
+        };
+        
+        // 样式补充
+        const style = document.createElement('style');
+        style.textContent = `
+            /* 模态框样式 */
+            .modal {
+                display: none;
+                position: fixed;
+                z-index: 1000;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                overflow: auto;
+                background-color: rgba(0, 0, 0, 0.4);
+            }
             
-            if (!currentUserInfo) {
-                // 如果用户信息还没加载完成，先加载
-                getCurrentUser().then(() => {
-                    checkAdminPermission();
-                });
-            } else {
-                checkAdminPermission();
+            .modal-content {
+                background-color: white;
+                margin: 15% auto;
+                padding: 20px;
+                border: 1px solid #888;
+                width: 80%;
+                max-width: 600px;
+                border-radius: 8px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
             }
-        });
-
-        function checkAdminPermission() {
-            if (currentUserInfo && currentUserInfo.permissions && currentUserInfo.permissions.admin) {
-                // 有管理员权限，跳转到管理后台
-                window.location.href = '/api/admin';
-            } else {
-                // 没有管理员权限，显示提示
-                alert('您当前没有权限进入集群管理后台，请联系管理员。');
+            
+            .close {
+                color: #aaa;
+                float: right;
+                font-size: 28px;
+                font-weight: bold;
+                cursor: pointer;
             }
-        }
-
-        // 页面加载时获取当前用户信息
-        getCurrentUser();
+            
+            .close:hover,
+            .close:focus {
+                color: black;
+                text-decoration: none;
+                cursor: pointer;
+            }
+            
+            /* 表单样式 */
+            .form-group {
+                margin-bottom: 20px;
+            }
+            
+            .form-group label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: 600;
+                color: #2d3748;
+            }
+            
+            .form-group input,
+            .form-group textarea {
+                width: 100%;
+                padding: 12px 16px;
+                border: 2px solid #e2e8f0;
+                border-radius: 8px;
+                font-size: 1rem;
+                transition: all 0.3s ease;
+            }
+            
+            .form-group input:focus,
+            .form-group textarea:focus {
+                outline: none;
+                border-color: #667eea;
+                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            }
+            
+            .form-group textarea {
+                height: 150px;
+                resize: vertical;
+            }
+            
+            /* 权限设置样式 */
+            .permissions-section {
+                margin-top: 16px;
+                margin-bottom: 24px;
+            }
+            
+            .permissions-title {
+                font-size: 16px;
+                font-weight: 600;
+                margin-bottom: 16px;
+                color: #2d3748;
+            }
+            
+            .permissions-grid {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .permission-item {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 16px;
+                background-color: #f8fafc;
+                border: 2px solid #e2e8f0;
+                border-radius: 10px;
+                transition: all 0.3s ease;
+            }
+            
+            .permission-item:hover {
+                background-color: #ffffff;
+                border-color: #cbd5e1;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            }
+            
+            .permission-item input[type="checkbox"] {
+                width: 20px;
+                height: 20px;
+                accent-color: #667eea;
+                cursor: pointer;
+                flex-shrink: 0;
+            }
+            
+            .permission-item label {
+                flex: 1;
+                font-size: 14px;
+                font-weight: 500;
+                color: #4a5568;
+                cursor: pointer;
+                margin: 0;
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html>

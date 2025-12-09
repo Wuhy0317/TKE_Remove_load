@@ -37,7 +37,11 @@ def permission_required(permission):
             cluster = kwargs.get('cluster')  # 集群名称通常是URL的第一个参数
             
             if not auth_manager.check_permission(username, permission, cluster):
-                return jsonify({'success': False, 'message': '权限不足'}), 403
+                # 根据cluster参数返回不同的错误信息
+                if cluster:
+                    return jsonify({'success': False, 'message': '您当前没有该集群权限，请联系管理员。'}), 403
+                else:
+                    return jsonify({'success': False, 'message': '权限不足'}), 403
             
             return f(*args, **kwargs)
         return decorated_function
@@ -55,18 +59,36 @@ def get_clusters():
     all_clusters = cluster_manager.get_clusters()
     user = auth_manager.get_user(username)
     
-    # 筛选用户有权限的集群
+    # 创建K8sService实例来获取集群版本
+    kubeconfig_dir = current_app.config['KUBECONFIG_DIR']
+    k8s_service = K8sService(kubeconfig_dir)
+    
+    # 筛选用户有权限的集群并添加版本信息
     accessible_clusters = []
     
     # 全局管理员或没有集群限制的用户可以访问所有集群
     if user['permissions'].get('admin', False) or not user['permissions'].get('clusters'):
-        accessible_clusters = [{'name': cluster['name'], 'display_name': cluster['display_name']} for cluster in all_clusters]
+        for cluster in all_clusters:
+            cluster_name = cluster['name']
+            # 获取集群版本信息
+            version_info = k8s_service.get_cluster_version(cluster_name)
+            accessible_clusters.append({
+                'name': cluster_name, 
+                'display_name': cluster['display_name'],
+                'version': version_info['git_version']
+            })
     else:
         # 检查每个集群是否在用户的访问列表中
         for cluster in all_clusters:
             cluster_name = cluster['name']
             if cluster_name in user['permissions']['clusters']:
-                accessible_clusters.append({'name': cluster_name, 'display_name': cluster['display_name']})
+                # 获取集群版本信息
+                version_info = k8s_service.get_cluster_version(cluster_name)
+                accessible_clusters.append({
+                    'name': cluster_name, 
+                    'display_name': cluster['display_name'],
+                    'version': version_info['git_version']
+                })
     
     return jsonify(accessible_clusters)
 

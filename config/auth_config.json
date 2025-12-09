@@ -15,9 +15,7 @@
       "read": true,
       "write": false,
       "admin": false,
-      "clusters": [
-        "cls-3qffq97f"
-      ]
+      "clusters": []
     }
   }
 ]
