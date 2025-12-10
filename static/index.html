@@ -860,9 +860,9 @@
                 <div class="content-header">
                     <h1 class="content-title">日志管理</h1>
                     <p class="content-subtitle">查看和管理系统操作日志</p>
-                    <div style="margin-top: 16px; display: flex; gap: 16px; align-items: flex-start;">
-                        <div>
-                            <label for="logActionFilter" style="margin-right: 8px; font-weight: 600;">操作类型:</label>
+                    <div style="margin-top: 16px; display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start;">
+                        <div style="margin-top: 5px;">
+                            <label for="logActionFilter" style="margin-right: 24px; font-weight: 600;">操作类型:</label>
                             <select id="logActionFilter" onchange="loadLogs()" style="padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px;">
                                 <option value="">所有操作</option>
                                 <option value="login_success">登录成功</option>
@@ -878,10 +878,32 @@
                                 <option value="delete_cluster">删除集群</option>
                             </select>
                         </div>
-                        <div style="flex: 1; max-width: 300px; margin-top: 26px;">
+                        <div style="margin-top: 5px;">
+                            <label for="logTimeRange" style="margin-right: 24px; font-weight: 600;">时间范围:</label>
+                            <select id="logTimeRange" onchange="applyTimeRange()" style="padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                                <option value="">自定义时间</option>
+                                <option value="5m">最近5分钟</option>
+                                <option value="1h">最近1小时</option>
+                                <option value="6h">最近6小时</option>
+                                <option value="12h">最近12小时</option>
+                                <option value="24h">最近24小时</option>
+                                <option value="3d">最近3天</option>
+                                <option value="7d">最近7天</option>
+                                <option value="30d">最近1个月</option>
+                            </select>
+                        </div>
+                        <div style="margin-top: 0px;">
+                            <label for="logStartDate" style="margin-right: 8px; font-weight: 600;">开始时间:</label>
+                            <input type="datetime-local" id="logStartDate" onchange="loadLogs()" style="padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                        </div>
+                        <div style="margin-top: 0px;">
+                            <label for="logEndDate" style="margin-right: 8px; font-weight: 600;">结束时间:</label>
+                            <input type="datetime-local" id="logEndDate" onchange="loadLogs()" style="padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                        </div>
+                        <div style="flex: 1; max-width: 300px; margin-top: 30px;">
                             <input type="text" id="logSearch" placeholder="搜索用户名..." onkeyup="handleLogSearch()" style="width: 100%; padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px;">
                         </div>
-                        <button class="btn-primary" onclick="loadLogs()" style="margin-top: 24px;">刷新</button>
+                        <button class="btn-primary" onclick="loadLogs()" style="margin-top: 28px;">刷新</button>
                     </div>
                 </div>
                 
@@ -1815,7 +1837,7 @@
                 .then(response => response.json())
                 .then(data => {
                     logsData = data;
-                    displayLogs(data);
+                    handleLogSearch(); // 应用所有过滤条件
                 })
                 .catch(error => {
                     showLogMessage('加载日志列表失败: ' + error.message, 'error');
@@ -1890,18 +1912,93 @@
             }, 3000);
         }
         
+        // 应用时间范围
+        function applyTimeRange() {
+            const timeRange = document.getElementById('logTimeRange').value;
+            const now = new Date();
+            let startDate = '';
+            let endDate = '';
+            
+            // 根据选择的时间范围计算开始时间
+            switch (timeRange) {
+                case '5m':
+                    startDate = new Date(now.getTime() - 5 * 60 * 1000);
+                    break;
+                case '1h':
+                    startDate = new Date(now.getTime() - 60 * 60 * 1000);
+                    break;
+                case '6h':
+                    startDate = new Date(now.getTime() - 6 * 60 * 60 * 1000);
+                    break;
+                case '12h':
+                    startDate = new Date(now.getTime() - 12 * 60 * 60 * 1000);
+                    break;
+                case '24h':
+                    startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+                    break;
+                case '3d':
+                    startDate = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+                    break;
+                case '7d':
+                    startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                    break;
+                case '30d':
+                    startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                    break;
+                default:
+                    // 自定义时间，不做处理
+                    return;
+            }
+            
+            endDate = now;
+            
+            // 转换为datetime-local格式 (YYYY-MM-DDTHH:MM)
+            const formatDate = (date) => {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                return `${year}-${month}-${day}T${hours}:${minutes}`;
+            };
+            
+            // 设置输入框的值
+            document.getElementById('logStartDate').value = formatDate(startDate);
+            document.getElementById('logEndDate').value = formatDate(endDate);
+            
+            // 触发日志加载
+            loadLogs();
+        }
+        
         // 处理日志搜索
         function handleLogSearch() {
             const searchTerm = document.getElementById('logSearch').value.toLowerCase();
+            const startDate = document.getElementById('logStartDate').value;
+            const endDate = document.getElementById('logEndDate').value;
             
-            if (!searchTerm) {
-                displayLogs(logsData);
-                return;
+            let filteredLogs = logsData;
+            
+            // 按用户名过滤
+            if (searchTerm) {
+                filteredLogs = filteredLogs.filter(log => 
+                    log.username.toLowerCase().includes(searchTerm)
+                );
             }
             
-            const filteredLogs = logsData.filter(log => 
-                log.username.toLowerCase().includes(searchTerm)
-            );
+            // 按时间范围过滤
+            if (startDate) {
+                const start = new Date(startDate).getTime();
+                filteredLogs = filteredLogs.filter(log => 
+                    new Date(log.timestamp).getTime() >= start
+                );
+            }
+            
+            if (endDate) {
+                const end = new Date(endDate).getTime();
+                filteredLogs = filteredLogs.filter(log => 
+                    new Date(log.timestamp).getTime() <= end
+                );
+            }
             
             displayLogs(filteredLogs);
         }
