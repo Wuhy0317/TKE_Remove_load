@@ -38,7 +38,7 @@ class K8sClient:
     def _get_client(self, client_type):
         """获取指定类型的Kubernetes客户端"""
         if not self.config_file:
-            raise FileNotFoundError(f'Kubeconfig file not found for cluster: {self.cluster_name}')
+            raise FileNotFoundError(f'Kubeconfig file not found for cluster: {self.cluster_display_name}')
         
         # 加载kubeconfig
         load_kube_config(self.config_file)
@@ -46,14 +46,26 @@ class K8sClient:
         # 创建配置对象并禁用SSL验证
         configuration = kubernetes.client.Configuration.get_default_copy()
         configuration.verify_ssl = False
+        api_client = kubernetes.client.ApiClient(configuration)
         
         # 根据客户端类型返回对应实例，使用禁用SSL验证的配置
         if client_type == 'core':
-            return kubernetes.client.CoreV1Api(kubernetes.client.ApiClient(configuration))
+            return kubernetes.client.CoreV1Api(api_client)
         elif client_type == 'apps':
-            return kubernetes.client.AppsV1Api(kubernetes.client.ApiClient(configuration))
+            return kubernetes.client.AppsV1Api(api_client)
+        elif client_type == 'batch':
+            return kubernetes.client.BatchV1Api(api_client)
+        elif client_type == 'batch_v1beta1':
+            try:
+                # 尝试获取BatchV1beta1Api客户端
+                return kubernetes.client.BatchV1beta1Api(api_client)
+            except AttributeError:
+                # 如果BatchV1beta1Api不存在，返回None
+                return None
         elif client_type == 'version':
-            return kubernetes.client.VersionApi(kubernetes.client.ApiClient(configuration))
+            return kubernetes.client.VersionApi(api_client)
+        elif client_type == 'networking':
+            return kubernetes.client.NetworkingV1Api(api_client)
         else:
             raise ValueError(f'Unknown client type: {client_type}')
     
@@ -68,6 +80,18 @@ class K8sClient:
     def get_version_client(self):
         """获取VersionApi客户端"""
         return self._get_client('version')
+    
+    def get_batch_client(self):
+        """获取BatchV1Api客户端"""
+        return self._get_client('batch')
+    
+    def get_batch_v1beta1_client(self):
+        """获取BatchV1beta1Api客户端"""
+        return self._get_client('batch_v1beta1')
+    
+    def get_networking_client(self):
+        """获取NetworkingV1Api客户端"""
+        return self._get_client('networking')
     
     def get_config_file(self):
         """获取kubeconfig文件路径"""

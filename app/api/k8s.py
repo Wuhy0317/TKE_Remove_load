@@ -351,13 +351,32 @@ def get_namespaces(cluster):
         stack_trace = traceback.format_exc()
         print(f"Error in get_namespaces: {error_msg}")
         print(f"Stack trace: {stack_trace}")
-        return jsonify({'error': error_msg}), 500
+        return jsonify({'success': False, 'message': error_msg}), 500
+
+@k8s_bp.route('/<cluster>/nodes', methods=['GET'])
+@login_required
+@permission_required('read')
+def get_nodes(cluster):
+    """获取指定集群的节点列表"""
+    import traceback
+    kubeconfig_dir = current_app.config['KUBECONFIG_DIR']
+    k8s_service = K8sService(kubeconfig_dir)
+    try:
+        nodes = k8s_service.get_nodes(cluster)
+        return jsonify(nodes)
+    except Exception as e:
+        error_msg = f"{type(e).__name__}: {str(e)}"
+        stack_trace = traceback.format_exc()
+        print(f"Error in get_nodes: {error_msg}")
+        print(f"Stack trace: {stack_trace}")
+        return jsonify({'success': False, 'message': error_msg}), 500
 
 @k8s_bp.route('/<cluster>/<namespace>/workloads', methods=['GET'])
 @login_required
 @permission_required('read')
 def get_workloads(cluster, namespace):
     """获取指定集群和命名空间的工作负载"""
+    import traceback
     kubeconfig_dir = current_app.config['KUBECONFIG_DIR']
     workload_type = request.args.get('type')
     k8s_service = K8sService(kubeconfig_dir)
@@ -365,12 +384,34 @@ def get_workloads(cluster, namespace):
         workloads = k8s_service.get_workloads(cluster, namespace, workload_type)
         return jsonify(workloads)
     except Exception as e:
-        return jsonify({'error': str(e)}), 404
+        error_msg = f"{type(e).__name__}: {str(e)}"
+        stack_trace = traceback.format_exc()
+        print(f"Error in get_workloads: {error_msg}")
+        print(f"Stack trace: {stack_trace}")
+        return jsonify({'success': False, 'message': error_msg}), 500
+
+@k8s_bp.route('/<cluster>/<namespace>/pods', methods=['GET'])
+@login_required
+@permission_required('read')
+def get_all_pods(cluster, namespace):
+    """获取指定命名空间下的所有Pod"""
+    kubeconfig_dir = current_app.config['KUBECONFIG_DIR']
+    k8s_service = K8sService(kubeconfig_dir)
+    try:
+        pods = k8s_service.get_pods(cluster, namespace)
+        return jsonify(pods)
+    except Exception as e:
+        import traceback
+        error_msg = f"{type(e).__name__}: {str(e)}"
+        stack_trace = traceback.format_exc()
+        print(f"Error in get_all_pods: {error_msg}")
+        print(f"Stack trace: {stack_trace}")
+        return jsonify({'success': False, 'message': error_msg}), 500
 
 @k8s_bp.route('/<cluster>/<namespace>/<workload_type>/<workload_name>/pods', methods=['GET'])
 @login_required
 @permission_required('read')
-def get_pods(cluster, namespace, workload_type, workload_name):
+def get_workload_pods(cluster, namespace, workload_type, workload_name):
     """获取指定工作负载的Pod列表"""
     kubeconfig_dir = current_app.config['KUBECONFIG_DIR']
     k8s_service = K8sService(kubeconfig_dir)
@@ -378,7 +419,30 @@ def get_pods(cluster, namespace, workload_type, workload_name):
         pods = k8s_service.get_pods(cluster, namespace, workload_type, workload_name)
         return jsonify(pods)
     except Exception as e:
-        return jsonify({'error': str(e)}), 404
+        import traceback
+        error_msg = f"{type(e).__name__}: {str(e)}"
+        stack_trace = traceback.format_exc()
+        print(f"Error in get_workload_pods: {error_msg}")
+        print(f"Stack trace: {stack_trace}")
+        return jsonify({'success': False, 'message': error_msg}), 500
+
+@k8s_bp.route('/<cluster>/<namespace>/<workload_type>/<name>/yaml', methods=['GET'])
+@login_required
+@permission_required('read')
+def get_workload_yaml(cluster, namespace, workload_type, name):
+    """获取指定工作负载的YAML配置"""
+    import traceback
+    kubeconfig_dir = current_app.config['KUBECONFIG_DIR']
+    k8s_service = K8sService(kubeconfig_dir)
+    try:
+        yaml_content = k8s_service.get_workload_yaml(cluster, namespace, name, workload_type)
+        return yaml_content, 200, {'Content-Type': 'text/plain'}
+    except Exception as e:
+        error_msg = f"{type(e).__name__}: {str(e)}"
+        stack_trace = traceback.format_exc()
+        print(f"Error in get_workload_yaml: {error_msg}")
+        print(f"Stack trace: {stack_trace}")
+        return jsonify({'success': False, 'message': error_msg}), 500
 
 @k8s_bp.route('/<cluster>/<namespace>/pods/<pod_name>/remove-load', methods=['POST'])
 @login_required
@@ -421,3 +485,40 @@ def restore_traffic(cluster, namespace, pod_name):
         return jsonify(result)
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+@k8s_bp.route('/<cluster>/<namespace>/services', methods=['GET'])
+@login_required
+@permission_required('read')
+def get_services(cluster, namespace):
+    """获取指定集群和命名空间的服务与路由列表"""
+    import traceback
+    kubeconfig_dir = current_app.config['KUBECONFIG_DIR']
+    service_type = request.args.get('type')
+    k8s_service = K8sService(kubeconfig_dir)
+    try:
+        services = k8s_service.get_services(cluster, namespace, service_type)
+        return jsonify(services)
+    except Exception as e:
+        error_msg = f"{type(e).__name__}: {str(e)}"
+        stack_trace = traceback.format_exc()
+        print(f"Error in get_services: {error_msg}")
+        print(f"Stack trace: {stack_trace}")
+        return jsonify({'success': False, 'message': error_msg}), 500
+
+@k8s_bp.route('/<cluster>/<namespace>/services/<service_type>/<name>/yaml', methods=['GET'])
+@login_required
+@permission_required('read')
+def get_service_yaml(cluster, namespace, service_type, name):
+    """获取指定服务或路由的YAML配置"""
+    import traceback
+    kubeconfig_dir = current_app.config['KUBECONFIG_DIR']
+    k8s_service = K8sService(kubeconfig_dir)
+    try:
+        yaml_content = k8s_service.get_service_yaml(cluster, namespace, name, service_type)
+        return yaml_content, 200, {'Content-Type': 'text/plain'}
+    except Exception as e:
+        error_msg = f"{type(e).__name__}: {str(e)}"
+        stack_trace = traceback.format_exc()
+        print(f"Error in get_service_yaml: {error_msg}")
+        print(f"Stack trace: {stack_trace}")
+        return jsonify({'success': False, 'message': error_msg}), 500

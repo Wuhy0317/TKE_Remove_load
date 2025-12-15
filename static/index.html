@@ -141,6 +141,7 @@
             font-weight: 500;
             transition: all 0.3s ease;
             border-left: 3px solid transparent;
+            cursor: pointer;
         }
         
         .nav-link:hover {
@@ -152,6 +153,43 @@
             background-color: #f0f4ff;
             color: #667eea;
             border-left-color: #667eea;
+        }
+        
+        /* 导航下拉菜单样式 */
+        .nav-dropdown-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-dropdown-icon {
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+        
+        .nav-dropdown-menu {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: none;
+        }
+        
+        .nav-dropdown-menu.active {
+            display: block;
+        }
+        
+        .nav-dropdown-menu .nav-link {
+            padding-left: 40px;
+            font-size: 14px;
+            background-color: #f8fafc;
+        }
+        
+        .nav-dropdown-menu .nav-link.active {
+            background-color: #e2e8f0;
+        }
+        
+        .nav-dropdown-toggle.active .nav-dropdown-icon {
+            transform: rotate(180deg);
         }
         
         /* 右侧内容区域 */
@@ -719,8 +757,34 @@
                             <a href="#" class="nav-link active" id="clusterNav">Kubernetes集群</a>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link" id="loadNav">负载管理</a>
+                            <div class="nav-link nav-dropdown-toggle" id="clusterMgmtNav">
+                                集群管理 <span class="nav-dropdown-icon">▼</span>
+                            </div>
+                            <ul class="nav-dropdown-menu" id="clusterMgmtMenu">
+                                <li class="nav-item">
+                                    <a href="#" class="nav-link" id="nodeNav" onclick="switchModule('node')">节点管理</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="#" class="nav-link" id="namespaceNav" onclick="switchModule('namespace')">命名空间</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="#" class="nav-link" id="workloadNav" onclick="switchModule('workload')">工作负载</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="#" class="nav-link" id="podNav" onclick="switchModule('pod')">Pod</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="#" class="nav-link" id="serviceNav" onclick="switchModule('service')">服务与路由</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="#" class="nav-link" id="configNav" onclick="switchModule('config')">配置管理</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="#" class="nav-link" id="storageNav" onclick="switchModule('storage')">存储</a>
+                                </li>
+                            </ul>
                         </li>
+
                         <li class="nav-item">
                             <a href="#" class="nav-link" id="userNav">用户管理</a>
                         </li>
@@ -754,72 +818,7 @@
                 </div>
             </div>
             
-            <!-- 负载管理内容 -->
-            <div id="loadContent" style="display: none;">
-                <div class="container">
-                    <div class="content-header">
-                        <h1 class="content-title">负载管理</h1>
-                        <p class="content-subtitle">管理Kubernetes集群中的Pod负载</p>
-                    </div>
-                    
-                    <div class="select-section">
-                        <div class="select-item">
-                            <label for="cluster">K8s集群</label>
-                            <select id="cluster" onchange="loadNamespaces()">
-                                <option value="">请选择集群</option>
-                            </select>
-                        </div>
-                        
-                        <div class="select-item">
-                            <label for="namespace">命名空间</label>
-                            <select id="namespace" onchange="loadWorkloads()">
-                                <option value="">请选择命名空间</option>
-                            </select>
-                        </div>
-                        
-                        <div class="select-item">
-                            <label for="workloadType">工作负载类型</label>
-                            <select id="workloadType" onchange="loadWorkloads()">
-                                <option value="">全部类型</option>
-                                <option value="deployment">Deployment</option>
-                                <option value="statefulset">StatefulSet</option>
-                                <option value="daemonset">DaemonSet</option>
-                            </select>
-                        </div>
-                        
-                        <div class="select-item">
-                            <label for="workload">工作负载</label>
-                            <select id="workload" onchange="loadPods()">
-                                <option value="">请选择工作负载</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="pod-section">
-                        <h2>Pod列表</h2>
-                        <div id="message"></div>
-                        <table id="podTable">
-                            <thead>
-                                <tr>
-                                    <th>Pod名称</th>
-                                    <th>状态</th>
-                                    <th>节点IP</th>
-                                    <th>Pod IP</th>
-                                    <th>创建时间</th>
-                                    <th>运行时间</th>
-                                    <th>是否已踢出负载</th>
-                                    <th>操作</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td colspan="8" style="text-align: center; color: #999;">请选择工作负载查看Pod列表</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+
             
             <!-- 用户管理内容 -->
             <div id="userContent" style="display: none;">
@@ -838,11 +837,11 @@
                     <table class="user-table" id="userTable">
                         <thead>
                             <tr>
-                                <th>用户名</th>
-                                <th>管理员权限</th>
-                                <th>读权限</th>
-                                <th>写权限</th>
-                                <th>操作</th>
+                                <th style="width: 150px;">用户名</th>
+                                <th style="width: 120px;">管理员权限</th>
+                                <th style="width: 100px;">读权限</th>
+                                <th style="width: 100px;">写权限</th>
+                                <th style="width: 120px;">操作</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -913,16 +912,391 @@
                     <table class="user-table" id="logsTable">
                         <thead>
                             <tr>
-                                <th>时间</th>
-                                <th>用户名</th>
-                                <th>操作类型</th>
-                                <th>操作资源</th>
-                                <th>详细信息</th>
+                                <th style="width: 180px;">时间</th>
+                                <th style="width: 120px;">用户名</th>
+                                <th style="width: 120px;">操作类型</th>
+                                <th style="width: 150px;">操作资源</th>
+                                <th style="width: 250px;">详细信息</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <td colspan="5" style="text-align: center; color: #999;">加载日志列表...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 节点管理内容 -->
+            <div id="nodeContent" style="display: none;">
+                <div class="content-header">
+                    <h1 class="content-title">节点管理</h1>
+                    <p class="content-subtitle">管理Kubernetes集群节点</p>
+                    <div style="margin-top: 16px; display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;">
+                        <div style="margin-top: 5px;">
+                            <label for="nodeCluster" style="margin-right: 24px; font-weight: 600;">K8s集群:</label>
+                            <select id="nodeCluster" onchange="loadNodes()" style="padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                                <option value="">请选择集群</option>
+                            </select>
+                        </div>
+                        <div style="margin-top: 28px; display: flex; gap: 10px; align-items: center;">
+                            <input type="text" id="nodeSearch" placeholder="搜索节点名称或IP..." onkeypress="if(event.key === 'Enter') searchNodes()" style="padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px; width: 300px;">
+                            <button class="btn-primary" onclick="searchNodes()">搜索</button>
+                            <button class="btn-secondary" onclick="clearNodeSearch()">清空</button>
+                        </div>
+                        <button class="btn-primary" onclick="loadNodes()" style="margin-top: 30px;">刷新</button>
+                    </div>
+                </div>
+                <div class="container">
+                    <div id="nodeMessage"></div>
+                    <table class="user-table" id="nodesTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 200px; text-align: center;">节点名称</th>
+                                <th style="width: 120px; text-align: center;">状态</th>
+                                <th style="width: 150px; text-align: center;">IP地址</th>
+                                <th style="width: 160px; text-align: center;">操作系统</th>
+                                <th style="width: 100px; text-align: center;">CPU</th>
+                                <th style="width: 100px; text-align: center;">内存</th>
+                                <th style="width: 180px; text-align: center;">创建时间</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="7" style="text-align: center; color: #999;">请选择集群查看节点列表</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 命名空间管理内容 -->
+            <div id="namespaceContent" style="display: none;">
+                <div class="content-header">
+                    <h1 class="content-title">命名空间</h1>
+                    <p class="content-subtitle">管理Kubernetes命名空间</p>
+                    <div style="margin-top: 16px; display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;">
+                        <div style="margin-top: 5px;">
+                            <label for="namespaceCluster" style="margin-right: 24px; font-weight: 600;">K8s集群:</label>
+                            <select id="namespaceCluster" onchange="loadNamespaces()" style="padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                                <option value="">请选择集群</option>
+                            </select>
+                        </div>
+                        <div style="margin-top: 28px; display: flex; gap: 10px; align-items: center;">
+                            <input type="text" id="namespaceSearch" placeholder="搜索命名空间..." onkeypress="if(event.key === 'Enter') searchNamespaces()" style="padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px; width: 300px;">
+                            <button class="btn-primary" onclick="searchNamespaces()">搜索</button>
+                            <button class="btn-secondary" onclick="clearNamespaceSearch()">清空</button>
+                        </div>
+                        <div style="margin-top: 30px;">
+                            <button class="btn-primary" onclick="loadNamespaces()">刷新</button>
+                            <button class="btn-primary" onclick="openAddNamespaceModal()" style="margin-left: 16px;">新建命名空间</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="container">
+                    <table class="user-table" id="namespacesTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 240px; text-align: center;">命名空间名称</th>
+                                <th style="width: 220px; text-align: center;">创建时间</th>
+                                <th style="width: 120px; text-align: center;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="3" style="text-align: center; color: #999;">请选择集群查看命名空间列表</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 工作负载管理内容 -->
+            <div id="workloadContent" style="display: none;">
+                <div class="content-header">
+                    <h1 class="content-title">工作负载</h1>
+                    <p class="content-subtitle">管理Kubernetes工作负载</p>
+                    <div style="margin-top: 16px; display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;">
+                        <div style="margin-top: 5px;">
+                            <label for="workloadCluster" style="margin-right: 24px; font-weight: 600;">K8s集群:</label>
+                            <select id="workloadCluster" onchange="loadWorkloadNamespaces()" style="padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                                <option value="">请选择集群</option>
+                            </select>
+                        </div>
+                        <div style="margin-top: 5px;">
+                            <label for="workloadNamespace" style="margin-right: 24px; font-weight: 600;">命名空间:</label>
+                            <select id="workloadNamespace" onchange="loadWorkloadsList()" style="padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                                <option value="">请选择命名空间</option>
+                            </select>
+                        </div>
+                        <div style="margin-top: 5px;">
+                            <label for="workloadTypeFilter" style="margin-right: 24px; font-weight: 600;">工作负载类型:</label>
+                            <select id="workloadTypeFilter" onchange="loadWorkloadsList()" style="padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                                <option value="">所有类型</option>
+                                <option value="deployment">Deployment</option>
+                                <option value="statefulset">StatefulSet</option>
+                                <option value="daemonset">DaemonSet</option>
+                                <option value="job">Job</option>
+                                <option value="cronjob">CronJob</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="margin-top: 16px; display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;">
+                        <div style="margin-top: 5px; display: flex; gap: 10px; align-items: center;">
+                            <input type="text" id="workloadSearch" placeholder="搜索工作负载名称..." onkeypress="if(event.key === 'Enter') searchWorkloads()" style="padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px; width: 300px;">
+                            <button class="btn-primary" onclick="searchWorkloads()">搜索</button>
+                            <button class="btn-secondary" onclick="clearWorkloadSearch()">清空</button>
+                            <button class="btn-primary" onclick="loadWorkloadsList()">刷新</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="container">
+                    <table class="user-table" id="workloadsTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 200px;">名称</th>
+                                <th style="width: 120px;">类型</th>
+                                <th style="width: 150px;">命名空间</th>
+                                <th style="width: 160px;">就绪副本/期望副本</th>
+                                <th style="width: 120px;">状态</th>
+                                <th style="width: 160px;">创建时间</th>
+                                <th style="width: 100px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="7" style="text-align: center; color: #999;">请选择集群和命名空间</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Pod管理内容 -->
+            <div id="podContent" style="display: none;">
+                <div class="content-header">
+                    <h1 class="content-title">Pod管理</h1>
+                    <p class="content-subtitle">管理Kubernetes Pod</p>
+                    <div style="margin-top: 16px; display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;">
+                        <div style="margin-top: 5px;">
+                            <label for="podCluster" style="margin-right: 24px; font-weight: 600;">K8s集群:</label>
+                            <select id="podCluster" onchange="loadPodNamespaces()" style="padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                                <option value="">请选择集群</option>
+                            </select>
+                        </div>
+                        <div style="margin-top: 5px;">
+                            <label for="podNamespace" style="margin-right: 24px; font-weight: 600;">命名空间:</label>
+                            <select id="podNamespace" onchange="loadPodWorkloads()" style="padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                                <option value="">请选择命名空间</option>
+                            </select>
+                        </div>
+                        <div style="margin-top: 5px;">
+                            <label for="podWorkload" style="margin-right: 24px; font-weight: 600;">工作负载:</label>
+                            <select id="podWorkload" onchange="loadPodsList()" style="padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                                <option value="">全部工作负载</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="margin-top: 16px; display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;">
+                        <div style="margin-top: 5px; display: flex; gap: 10px; align-items: center;">
+                            <input type="text" id="podSearch" placeholder="搜索Pod名称..." onkeypress="if(event.key === 'Enter') searchPods()" style="padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px; width: 300px;">
+                            <button class="btn-primary" onclick="searchPods()">搜索</button>
+                            <button class="btn-secondary" onclick="clearPodSearch()">清空</button>
+                            <button class="btn-primary" onclick="loadPodsList()">刷新</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="container">
+                    <div id="podMessage"></div>
+                    <style>
+                        /* Pod管理页面样式 */
+                        #podsTable th,
+                        #podsTable td {
+                            text-align: center !important;
+                            vertical-align: middle !important;
+                        }
+                        /* Pod名称标签居中，内容靠左 */
+                        #podsTable th:first-child {
+                            text-align: center !important;
+                        }
+                        #podsTable td:first-child {
+                            text-align: left !important;
+                        }
+                        /* 确保选择器标签居中 */
+                        .select-section label {
+                            text-align: center;
+                            display: block;
+                            margin-bottom: 5px;
+                        }
+                    </style>
+                    <table class="user-table" id="podsTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 250px;">Pod名称</th>
+                                <th style="width: 120px;">状态</th>
+                                <th style="width: 150px;">节点</th>
+                                <th style="width: 130px;">IP地址</th>
+                                <th style="width: 120px;">重启次数</th>
+                                <th style="width: 120px;">是否踢出负载</th>
+                                <th style="width: 160px;">创建时间</th>
+                                <th style="width: 100px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="8" style="text-align: center; color: #999;">请选择集群和命名空间</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 服务与路由管理内容 -->
+            <div id="serviceContent" style="display: none;">
+                <div class="content-header">
+                    <h1 class="content-title">服务与路由</h1>
+                    <p class="content-subtitle">管理Kubernetes服务和路由</p>
+                    <div style="margin-top: 16px; display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;">
+                        <div style="margin-top: 5px;">
+                            <label for="serviceCluster" style="margin-right: 24px; font-weight: 600;">K8s集群:</label>
+                            <select id="serviceCluster" onchange="loadServiceNamespaces()" style="padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                                <option value="">请选择集群</option>
+                            </select>
+                        </div>
+                        <div style="margin-top: 5px;">
+                            <label for="serviceNamespace" style="margin-right: 24px; font-weight: 600;">命名空间:</label>
+                            <select id="serviceNamespace" onchange="loadServicesList()" style="padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                                <option value="">请选择命名空间</option>
+                            </select>
+                        </div>
+                        <div style="margin-top: 5px;">
+                            <label for="serviceTypeFilter" style="margin-right: 24px; font-weight: 600;">资源类型:</label>
+                            <select id="serviceTypeFilter" onchange="loadServicesList()" style="padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                                <option value="">所有类型</option>
+                                <option value="service">Service</option>
+                                <option value="ingress">Ingress</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="container">
+                    <table class="user-table" id="servicesTable">
+                        <thead>
+                            <tr>
+                                <th>名称</th>
+                                <th>类型</th>
+                                <th>命名空间</th>
+                                <th>IP地址</th>
+                                <th>端口</th>
+                                <th>状态</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="8" style="text-align: center; color: #999;">请选择集群和命名空间</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 配置管理内容 -->
+            <div id="configContent" style="display: none;">
+                <div class="content-header">
+                    <h1 class="content-title">配置管理</h1>
+                    <p class="content-subtitle">管理Kubernetes配置资源</p>
+                    <div style="margin-top: 16px; display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;">
+                        <div style="margin-top: 5px;">
+                            <label for="configCluster" style="margin-right: 24px; font-weight: 600;">K8s集群:</label>
+                            <select id="configCluster" onchange="loadConfigNamespaces()" style="padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                                <option value="">请选择集群</option>
+                            </select>
+                        </div>
+                        <div style="margin-top: 5px;">
+                            <label for="configNamespace" style="margin-right: 24px; font-weight: 600;">命名空间:</label>
+                            <select id="configNamespace" onchange="loadConfigsList()" style="padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                                <option value="">请选择命名空间</option>
+                            </select>
+                        </div>
+                        <div style="margin-top: 5px;">
+                            <label for="configTypeFilter" style="margin-right: 24px; font-weight: 600;">配置类型:</label>
+                            <select id="configTypeFilter" onchange="loadConfigsList()" style="padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                                <option value="">所有类型</option>
+                                <option value="configmap">ConfigMap</option>
+                                <option value="secret">Secret</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="container">
+                    <table class="user-table" id="configsTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 180px;">名称</th>
+                                <th style="width: 120px;">类型</th>
+                                <th style="width: 150px;">命名空间</th>
+                                <th style="width: 100px;">数据项</th>
+                                <th style="width: 160px;">创建时间</th>
+                                <th style="width: 100px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="6" style="text-align: center; color: #999;">请选择集群和命名空间</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 存储管理内容 -->
+            <div id="storageContent" style="display: none;">
+                <div class="content-header">
+                    <h1 class="content-title">存储管理</h1>
+                    <p class="content-subtitle">管理Kubernetes存储资源</p>
+                    <div style="margin-top: 16px; display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;">
+                        <div style="margin-top: 5px;">
+                            <label for="storageCluster" style="margin-right: 24px; font-weight: 600;">K8s集群:</label>
+                            <select id="storageCluster" onchange="loadStorageNamespaces()" style="padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                                <option value="">请选择集群</option>
+                            </select>
+                        </div>
+                        <div style="margin-top: 5px;">
+                            <label for="storageNamespace" style="margin-right: 24px; font-weight: 600;">命名空间:</label>
+                            <select id="storageNamespace" onchange="loadStorageList()" style="padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                                <option value="">请选择命名空间</option>
+                            </select>
+                        </div>
+                        <div style="margin-top: 5px;">
+                            <label for="storageTypeFilter" style="margin-right: 24px; font-weight: 600;">存储类型:</label>
+                            <select id="storageTypeFilter" onchange="loadStorageList()" style="padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                                <option value="">所有类型</option>
+                                <option value="pv">PersistentVolume</option>
+                                <option value="pvc">PersistentVolumeClaim</option>
+                                <option value="storageclass">StorageClass</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="container">
+                    <table class="user-table" id="storageTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 180px;">名称</th>
+                                <th style="width: 120px;">类型</th>
+                                <th style="width: 150px;">命名空间</th>
+                                <th style="width: 120px;">容量</th>
+                                <th style="width: 100px;">状态</th>
+                                <th style="width: 160px;">创建时间</th>
+                                <th style="width: 100px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="7" style="text-align: center; color: #999;">请选择集群和命名空间</td>
                             </tr>
                         </tbody>
                     </table>
@@ -988,6 +1362,34 @@
         </div>
     </div>
     
+    <!-- 服务YAML查看模态框 -->
+    <div id="serviceYamlModal" class="modal">
+        <div class="modal-content" style="width: 90%; max-width: 1200px; max-height: 80vh; overflow: auto;">
+            <span class="close" onclick="closeServiceYamlModal()">&times;</span>
+            <h3 id="serviceYamlTitle">服务YAML配置</h3>
+            <div style="margin-top: 20px;">
+                <pre style="background-color: #f8fafc; padding: 16px; border-radius: 8px; font-family: monospace; white-space: pre-wrap; word-wrap: break-word;"><code id="serviceYamlContent">加载中...</code></pre>
+            </div>
+            <div style="text-align: right; margin-top: 20px;">
+                <button type="button" class="btn-primary" onclick="closeServiceYamlModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 工作负载YAML查看模态框 -->
+    <div id="workloadYamlModal" class="modal">
+        <div class="modal-content" style="width: 90%; max-width: 1200px; max-height: 80vh; overflow: auto;">
+            <span class="close" onclick="closeWorkloadYamlModal()">&times;</span>
+            <h3 id="workloadYamlTitle">工作负载YAML配置</h3>
+            <div style="margin-top: 20px;">
+                <pre style="background-color: #f8fafc; padding: 16px; border-radius: 8px; font-family: monospace; white-space: pre-wrap; word-wrap: break-word;"><code id="workloadYamlContent">加载中...</code></pre>
+            </div>
+            <div style="text-align: right; margin-top: 20px;">
+                <button type="button" class="btn-primary" onclick="closeWorkloadYamlModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+    
     <!-- 添加集群模态框 -->
     <div id="clusterModal" class="modal">
         <div class="modal-content">
@@ -1050,11 +1452,13 @@
                 switchModule('cluster');
             });
             
-            // 负载管理导航
-            document.getElementById('loadNav').addEventListener('click', function(e) {
+            // 集群管理下拉菜单
+            document.getElementById('clusterMgmtNav').addEventListener('click', function(e) {
                 e.preventDefault();
-                switchModule('load');
+                toggleNavDropdown('clusterMgmt');
             });
+            
+
             
             // 用户管理导航
             document.getElementById('userNav').addEventListener('click', function(e) {
@@ -1069,6 +1473,14 @@
             });
         }
         
+        // 切换导航下拉菜单
+        function toggleNavDropdown(dropdownId) {
+            const toggle = document.getElementById(`${dropdownId}Nav`);
+            const menu = document.getElementById(`${dropdownId}Menu`);
+            toggle.classList.toggle('active');
+            menu.classList.toggle('active');
+        }
+        
         // 切换模块
         function switchModule(moduleName) {
             // 更新导航状态
@@ -1077,23 +1489,47 @@
             
             // 隐藏所有内容
             document.getElementById('clusterContent').style.display = 'none';
-            document.getElementById('loadContent').style.display = 'none';
             document.getElementById('userContent').style.display = 'none';
             document.getElementById('logContent').style.display = 'none';
+            document.getElementById('nodeContent').style.display = 'none';
+            document.getElementById('namespaceContent').style.display = 'none';
+            document.getElementById('workloadContent').style.display = 'none';
+            document.getElementById('podContent').style.display = 'none';
+            document.getElementById('serviceContent').style.display = 'none';
+            document.getElementById('configContent').style.display = 'none';
+            document.getElementById('storageContent').style.display = 'none';
             
             // 显示对应内容
             switch(moduleName) {
                 case 'cluster':
                     loadClusterContent();
                     break;
-                case 'load':
-                    loadLoadContent();
-                    break;
                 case 'user':
                     loadUserContent();
                     break;
                 case 'log':
                     loadLogContent();
+                    break;
+                case 'node':
+                    loadNodeContent();
+                    break;
+                case 'namespace':
+                    loadNamespaceContent();
+                    break;
+                case 'workload':
+                    loadWorkloadContent();
+                    break;
+                case 'pod':
+                    loadPodContent();
+                    break;
+                case 'service':
+                    loadServiceContent();
+                    break;
+                case 'config':
+                    loadConfigContent();
+                    break;
+                case 'storage':
+                    loadStorageContent();
                     break;
             }
             
@@ -1353,182 +1789,19 @@
             }
         });
         
-        // 加载负载管理内容
-        function loadLoadContent() {
-            document.getElementById('loadContent').style.display = 'block';
-            loadClustersForLoad();
-        }
+
         
-        // 加载集群列表（负载管理）
-        function loadClustersForLoad() {
-            fetch('/api/clusters')
-                .then(response => response.json())
-                .then(data => {
-                    const clusterSelect = document.getElementById('cluster');
-                    clusterSelect.innerHTML = '<option value="">请选择集群</option>';
-                    data.forEach(cluster => {
-                        const option = document.createElement('option');
-                        option.value = cluster.name;
-                        option.textContent = cluster.display_name || cluster.name;
-                        clusterSelect.appendChild(option);
-                    });
-                })
-                .catch(error => {
-                    showMessage('加载集群失败: ' + error.message, 'error');
-                });
-        }
-        
-        // 加载命名空间列表
-        function loadNamespaces() {
-            const cluster = document.getElementById('cluster').value;
-            const namespaceSelect = document.getElementById('namespace');
-            const workloadSelect = document.getElementById('workload');
-            const podTable = document.getElementById('podTable').getElementsByTagName('tbody')[0];
-            
-            namespaceSelect.innerHTML = '<option value="">请选择命名空间</option>';
-            workloadSelect.innerHTML = '<option value="">请选择工作负载</option>';
-            podTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">请选择工作负载查看Pod列表</td></tr>';
-            
-            if (!cluster) return;
-            
-            fetch(`/api/${cluster}/namespaces`)
-                .then(response => response.json())
-                .then(data => {
-                    if (Array.isArray(data)) {
-                        // 成功获取命名空间列表
-                        data.forEach(namespace => {
-                            const option = document.createElement('option');
-                            option.value = namespace;
-                            option.textContent = namespace;
-                            namespaceSelect.appendChild(option);
-                        });
-                    } else if (data.success === false) {
-                        // 服务器返回了错误信息
-                        showMessage(data.message, 'error');
-                    } else if (data.error) {
-                        // 旧格式的错误信息
-                        showMessage('加载命名空间失败: ' + data.error, 'error');
-                    } else {
-                        // 其他格式错误
-                        showMessage('加载命名空间失败: 返回数据格式错误', 'error');
-                    }
-                })
-                .catch(error => {
-                    showMessage('加载命名空间失败: ' + error.message, 'error');
-                });
-        }
-        
-        // 加载工作负载列表
-        function loadWorkloads() {
-            const cluster = document.getElementById('cluster').value;
-            const namespace = document.getElementById('namespace').value;
-            const workloadType = document.getElementById('workloadType').value;
-            const workloadSelect = document.getElementById('workload');
-            const podTable = document.getElementById('podTable').getElementsByTagName('tbody')[0];
-            
-            workloadSelect.innerHTML = '<option value="">请选择工作负载</option>';
-            podTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">请选择工作负载查看Pod列表</td></tr>';
-            
-            if (!cluster || !namespace) return;
-            
-            let url = `/api/${cluster}/${namespace}/workloads`;
-            if (workloadType) {
-                url += `?type=${workloadType}`;
-            }
-            
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    if (Array.isArray(data)) {
-                        data.forEach(workload => {
-                            const option = document.createElement('option');
-                            option.value = JSON.stringify({name: workload.name, type: workload.type});
-                            option.textContent = `${workload.name} (${workload.type})`;
-                            workloadSelect.appendChild(option);
-                        });
-                    } else if (data.success === false) {
-                        // 服务器返回了错误信息
-                        showMessage(data.message, 'error');
-                    } else if (data.error) {
-                        // 旧格式的错误信息
-                        showMessage('加载工作负载失败: ' + data.error, 'error');
-                    } else {
-                        // 其他格式错误
-                        showMessage('加载工作负载失败: 返回数据格式错误', 'error');
-                    }
-                })
-                .catch(error => {
-                    showMessage('加载工作负载失败: ' + error.message, 'error');
-                });
-        }
-        
-        // 加载Pod列表
-        function loadPods() {
-            const cluster = document.getElementById('cluster').value;
-            const namespace = document.getElementById('namespace').value;
-            const workloadOption = document.getElementById('workload').value;
-            const podTable = document.getElementById('podTable').getElementsByTagName('tbody')[0];
-            
-            if (!cluster || !namespace || !workloadOption) {
-                podTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">请选择工作负载查看Pod列表</td></tr>';
-                return;
-            }
-            
-            const workload = JSON.parse(workloadOption);
-            
-            fetch(`/api/${cluster}/${namespace}/${workload.type}/${workload.name}/pods`)
-                .then(response => response.json())
-                .then(data => {
-                    if (Array.isArray(data)) {
-                        if (data.length === 0) {
-                            podTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">该工作负载下没有Pod</td></tr>';
-                            return;
-                        }
-                        
-                        let rows = '';
-                        data.forEach(pod => {
-                            const hasRemoveload = pod.has_removeload ? '<span class="has-removeload">是</span>' : '<span class="no-removeload">否</span>';
-                            const actionButtons = pod.has_removeload ? 
-                                `<button class="restore" onclick="restoreTraffic('${cluster}', '${namespace}', '${pod.name}')">恢复流量</button>` : 
-                                `<button class="remove" onclick="removeLoad('${cluster}', '${namespace}', '${pod.name}')">踢出负载</button>`;
-                            
-                            rows += `
-                                <tr>
-                                    <td>${pod.name}</td>
-                                    <td><span class="status ${pod.status}">${pod.status}</span></td>
-                                    <td>${pod.node_ip || '-'}</td>
-                                    <td>${pod.pod_ip || '-'}</td>
-                                    <td>${pod.created_time || '-'}</td>
-                                    <td>${pod.running_time || '-'}</td>
-                                    <td>${hasRemoveload}</td>
-                                    <td class="action-buttons">${actionButtons}</td>
-                                </tr>
-                            `;
-                        });
-                        
-                        podTable.innerHTML = rows;
-                    } else if (data.success === false) {
-                        // 服务器返回了错误信息
-                        showMessage(data.message, 'error');
-                        podTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">加载Pod列表失败</td></tr>';
-                    } else if (data.error) {
-                        // 旧格式的错误信息
-                        showMessage('加载Pod列表失败: ' + data.error, 'error');
-                        podTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">加载Pod列表失败</td></tr>';
-                    } else {
-                        // 其他格式错误
-                        showMessage('加载Pod列表失败: 返回数据格式错误', 'error');
-                        podTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">加载Pod列表失败</td></tr>';
-                    }
-                })
-                .catch(error => {
-                    showMessage('加载Pod列表失败: ' + error.message, 'error');
-                    podTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">加载Pod列表失败</td></tr>';
-                });
+        // 显示消息的通用函数
+        function showPodMessage(text, type, messageDivId = 'podMessage') {
+            const messageDiv = document.getElementById(messageDivId);
+            messageDiv.innerHTML = `<div class="message ${type}">${text}</div>`;
+            setTimeout(() => {
+                messageDiv.innerHTML = '';
+            }, 3000);
         }
         
         // 踢出负载
-        function removeLoad(cluster, namespace, podName) {
+        function removeLoad(cluster, namespace, podName, refreshFunction = 'loadPods') {
             fetch(`/api/${cluster}/${namespace}/pods/${podName}/remove-load`, {
                 method: 'POST',
                 headers: {
@@ -1538,19 +1811,35 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showMessage(data.message, 'success');
-                    loadPods();
+                    // 根据当前页面调用不同的消息显示和刷新函数
+                    if (refreshFunction === 'loadPodsList') {
+                        showPodMessage(data.message, 'success', 'podMessage');
+                        loadPodsList();
+                    } else {
+                        showMessage(data.message, 'success');
+                        loadPods();
+                    }
                 } else {
-                    showMessage(data.error || '操作失败', 'error');
+                    // 根据当前页面调用不同的消息显示函数
+                    if (refreshFunction === 'loadPodsList') {
+                        showPodMessage(data.error || '操作失败', 'error', 'podMessage');
+                    } else {
+                        showMessage(data.error || '操作失败', 'error');
+                    }
                 }
             })
             .catch(error => {
-                showMessage('操作失败: ' + error.message, 'error');
+                // 根据当前页面调用不同的消息显示函数
+                if (refreshFunction === 'loadPodsList') {
+                    showPodMessage('操作失败: ' + error.message, 'error', 'podMessage');
+                } else {
+                    showMessage('操作失败: ' + error.message, 'error');
+                }
             });
         }
         
         // 恢复流量
-        function restoreTraffic(cluster, namespace, podName) {
+        function restoreTraffic(cluster, namespace, podName, refreshFunction = 'loadPods') {
             fetch(`/api/${cluster}/${namespace}/pods/${podName}/restore-traffic`, {
                 method: 'POST',
                 headers: {
@@ -1560,14 +1849,30 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showMessage(data.message, 'success');
-                    loadPods();
+                    // 根据当前页面调用不同的消息显示和刷新函数
+                    if (refreshFunction === 'loadPodsList') {
+                        showPodMessage(data.message, 'success', 'podMessage');
+                        loadPodsList();
+                    } else {
+                        showMessage(data.message, 'success');
+                        loadPods();
+                    }
                 } else {
-                    showMessage(data.error || '操作失败', 'error');
+                    // 根据当前页面调用不同的消息显示函数
+                    if (refreshFunction === 'loadPodsList') {
+                        showPodMessage(data.error || '操作失败', 'error', 'podMessage');
+                    } else {
+                        showMessage(data.error || '操作失败', 'error');
+                    }
                 }
             })
             .catch(error => {
-                showMessage('操作失败: ' + error.message, 'error');
+                // 根据当前页面调用不同的消息显示函数
+                if (refreshFunction === 'loadPodsList') {
+                    showPodMessage('操作失败: ' + error.message, 'error', 'podMessage');
+                } else {
+                    showMessage('操作失败: ' + error.message, 'error');
+                }
             });
         }
         
@@ -1843,6 +2148,999 @@
                     showLogMessage('加载日志列表失败: ' + error.message, 'error');
                     const logsTable = document.getElementById('logsTable').getElementsByTagName('tbody')[0];
                     logsTable.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">加载日志列表失败</td></tr>';
+                });
+        }
+        
+        // 节点管理内容加载
+        function loadNodeContent() {
+            document.getElementById('nodeContent').style.display = 'block';
+            // 加载集群列表
+            loadClustersForNodes();
+        }
+        
+        // 加载集群列表（用于节点管理）
+        function loadClustersForNodes() {
+            fetch('/api/clusters')
+                .then(response => response.json())
+                .then(data => {
+                    const clusterSelect = document.getElementById('nodeCluster');
+                    clusterSelect.innerHTML = '<option value="">请选择集群</option>';
+                    data.forEach(cluster => {
+                        const option = document.createElement('option');
+                        option.value = cluster.name;
+                        option.textContent = cluster.display_name || cluster.name;
+                        clusterSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    showNodeMessage('加载集群失败: ' + error.message, 'error');
+                });
+        }
+        
+        // 显示节点消息
+        function showNodeMessage(text, type) {
+            const messageDiv = document.getElementById('nodeMessage');
+            messageDiv.innerHTML = `<div class="message ${type}">${text}</div>`;
+            setTimeout(() => {
+                messageDiv.innerHTML = '';
+            }, 3000);
+        }
+        
+        // 全局变量存储节点数据
+        let allNodes = [];
+        let currentCluster = '';
+        
+        // 加载节点列表
+        function loadNodes() {
+            const cluster = document.getElementById('nodeCluster').value;
+            const nodesTable = document.getElementById('nodesTable').getElementsByTagName('tbody')[0];
+            
+            if (!cluster) {
+                nodesTable.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">请选择集群查看节点列表</td></tr>';
+                allNodes = [];
+                currentCluster = '';
+                return;
+            }
+            
+            currentCluster = cluster;
+            nodesTable.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">加载节点列表...</td></tr>';
+            
+            fetch(`/api/${cluster}/nodes`)
+                .then(response => response.json())
+                .then(data => {
+                    if (Array.isArray(data)) {
+                        // 存储节点数据到全局变量
+                        allNodes = data;
+                        
+                        if (data.length === 0) {
+                            nodesTable.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">该集群下没有节点</td></tr>';
+                            return;
+                        }
+                        
+                        // 渲染节点列表
+                        renderNodes(data);
+                    } else if (data.success === false) {
+                        // 服务器返回了错误信息
+                        showNodeMessage(data.message, 'error');
+                        nodesTable.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #dc2626;">加载节点列表失败</td></tr>';
+                        allNodes = [];
+                    } else {
+                        showNodeMessage('加载节点列表失败: 返回数据格式错误', 'error');
+                        nodesTable.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #dc2626;">加载节点列表失败</td></tr>';
+                        allNodes = [];
+                    }
+                })
+                .catch(error => {
+                    showNodeMessage('加载节点列表失败: ' + error.message, 'error');
+                    const nodesTable = document.getElementById('nodesTable').getElementsByTagName('tbody')[0];
+                    nodesTable.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #dc2626;">加载节点列表失败</td></tr>';
+                    allNodes = [];
+                });
+        }
+        
+        // 渲染节点列表
+        function renderNodes(nodes) {
+            const nodesTable = document.getElementById('nodesTable').getElementsByTagName('tbody')[0];
+            
+            let rows = '';
+            nodes.forEach(node => {
+                // 格式化创建时间
+                const creationTime = new Date(node.creation_timestamp).toLocaleString('zh-CN');
+                
+                rows += `
+                    <tr>
+                        <td style="text-align: center;">${node.name}</td>
+                        <td style="text-align: center;">${node.status}</td>
+                        <td style="text-align: center;">${node.internal_ip}</td>
+                        <td style="text-align: center;">${node.os_image}</td>
+                        <td style="text-align: center;">${node.cpu_allocatable}</td>
+                        <td style="text-align: center;">${node.memory_allocatable}</td>
+                        <td style="text-align: center;">${creationTime}</td>
+                    </tr>
+                `;
+            });
+            nodesTable.innerHTML = rows;
+        }
+        
+        // 搜索节点
+        function searchNodes() {
+            const searchTerm = document.getElementById('nodeSearch').value.trim().toLowerCase();
+            
+            if (!searchTerm) {
+                // 如果搜索词为空，显示所有节点
+                renderNodes(allNodes);
+                return;
+            }
+            
+            // 筛选匹配的节点
+            const filteredNodes = allNodes.filter(node => {
+                const nodeName = node.name.toLowerCase();
+                const nodeIp = node.internal_ip.toLowerCase();
+                
+                // 匹配节点名称或IP地址
+                return nodeName.includes(searchTerm) || nodeIp.includes(searchTerm);
+            });
+            
+            // 渲染筛选后的节点
+            const nodesTable = document.getElementById('nodesTable').getElementsByTagName('tbody')[0];
+            
+            if (filteredNodes.length === 0) {
+                nodesTable.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">没有找到匹配的节点</td></tr>';
+                return;
+            }
+            
+            renderNodes(filteredNodes);
+        }
+        
+        // 清空搜索
+        function clearNodeSearch() {
+            document.getElementById('nodeSearch').value = '';
+            renderNodes(allNodes);
+        }
+        
+        // 全局变量存储命名空间数据
+        let allNamespaces = [];
+        let currentNamespaceCluster = '';
+        
+        // 加载集群列表（用于命名空间管理）
+        function loadClustersForNamespaces() {
+            fetch('/api/clusters')
+                .then(response => response.json())
+                .then(data => {
+                    const clusterSelect = document.getElementById('namespaceCluster');
+                    clusterSelect.innerHTML = '<option value="">请选择集群</option>';
+                    data.forEach(cluster => {
+                        const option = document.createElement('option');
+                        option.value = cluster.name;
+                        option.textContent = cluster.display_name || cluster.name;
+                        clusterSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    showNamespaceMessage('加载集群失败: ' + error.message, 'error');
+                });
+        }
+        
+        // 显示命名空间消息
+        function showNamespaceMessage(text, type) {
+            const messageDiv = document.getElementById('namespaceMessage') || document.createElement('div');
+            messageDiv.id = 'namespaceMessage';
+            messageDiv.className = 'message-container';
+            messageDiv.innerHTML = `<div class="message ${type}">${text}</div>`;
+            
+            // 添加到container中
+            const container = document.querySelector('#namespaceContent .container');
+            const table = document.getElementById('namespacesTable');
+            container.insertBefore(messageDiv, table);
+            
+            setTimeout(() => {
+                messageDiv.innerHTML = '';
+            }, 3000);
+        }
+        
+        // 加载命名空间列表
+        function loadNamespaces() {
+            const cluster = document.getElementById('namespaceCluster').value;
+            const namespacesTable = document.getElementById('namespacesTable').getElementsByTagName('tbody')[0];
+            
+            if (!cluster) {
+                namespacesTable.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #999;">请选择集群查看命名空间列表</td></tr>';
+                allNamespaces = [];
+                currentNamespaceCluster = '';
+                return;
+            }
+            
+            currentNamespaceCluster = cluster;
+            namespacesTable.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #999;">加载命名空间列表...</td></tr>';
+            
+            fetch(`/api/${cluster}/namespaces`)
+                .then(response => response.json())
+                .then(data => {
+                    if (Array.isArray(data)) {
+                        // 存储命名空间数据到全局变量
+                        allNamespaces = data;
+                        
+                        if (data.length === 0) {
+                            namespacesTable.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #999;">该集群下没有命名空间</td></tr>';
+                            return;
+                        }
+                        
+                        // 渲染命名空间列表
+                        renderNamespaces(data);
+                    } else if (data.success === false) {
+                        // 服务器返回了错误信息
+                        showNamespaceMessage(data.message, 'error');
+                        namespacesTable.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #dc2626;">加载命名空间列表失败</td></tr>';
+                        allNamespaces = [];
+                    } else {
+                        showNamespaceMessage('加载命名空间列表失败: 返回数据格式错误', 'error');
+                        namespacesTable.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #dc2626;">加载命名空间列表失败</td></tr>';
+                        allNamespaces = [];
+                    }
+                })
+                .catch(error => {
+                    showNamespaceMessage('加载命名空间列表失败: ' + error.message, 'error');
+                    const namespacesTable = document.getElementById('namespacesTable').getElementsByTagName('tbody')[0];
+                    namespacesTable.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #dc2626;">加载命名空间列表失败</td></tr>';
+                    allNamespaces = [];
+                });
+        }
+        
+        // 渲染命名空间列表
+        function renderNamespaces(namespaces) {
+            const namespacesTable = document.getElementById('namespacesTable').getElementsByTagName('tbody')[0];
+            
+            let rows = '';
+            namespaces.forEach(ns => {
+                // 格式化创建时间
+                const creationTime = new Date(ns.creation_time).toLocaleString('zh-CN');
+                
+                rows += `
+                    <tr>
+                        <td style="text-align: center;">${ns.name}</td>
+                        <td style="text-align: center;">${creationTime}</td>
+                        <td style="text-align: center;">
+                            <button class="btn-edit" onclick="editNamespace('${ns.name}')">编辑</button>
+                            <button class="btn-delete" onclick="deleteNamespace('${ns.name}')">删除</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            namespacesTable.innerHTML = rows;
+        }
+        
+        // 搜索命名空间
+        function searchNamespaces() {
+            const searchTerm = document.getElementById('namespaceSearch').value.trim().toLowerCase();
+            
+            if (!searchTerm) {
+                // 如果搜索词为空，显示所有命名空间
+                renderNamespaces(allNamespaces);
+                return;
+            }
+            
+            // 筛选匹配的命名空间
+            const filteredNamespaces = allNamespaces.filter(ns => {
+                const nsName = ns.name.toLowerCase();
+                
+                // 匹配命名空间名称
+                return nsName.includes(searchTerm);
+            });
+            
+            // 渲染筛选后的命名空间
+            const namespacesTable = document.getElementById('namespacesTable').getElementsByTagName('tbody')[0];
+            
+            if (filteredNamespaces.length === 0) {
+                namespacesTable.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #999;">没有找到匹配的命名空间</td></tr>';
+                return;
+            }
+            
+            renderNamespaces(filteredNamespaces);
+        }
+        
+        // 清空搜索
+        function clearNamespaceSearch() {
+            document.getElementById('namespaceSearch').value = '';
+            renderNamespaces(allNamespaces);
+        }
+        
+        // 编辑命名空间（占位函数）
+        function editNamespace(namespaceName) {
+            showNamespaceMessage(`编辑命名空间: ${namespaceName}（功能开发中）`, 'info');
+        }
+        
+        // 删除命名空间（占位函数）
+        function deleteNamespace(namespaceName) {
+            if (confirm(`确定要删除命名空间 ${namespaceName} 吗？`)) {
+                showNamespaceMessage(`删除命名空间: ${namespaceName}（功能开发中）`, 'info');
+            }
+        }
+        
+        // 打开新建命名空间模态框（占位函数）
+        function openAddNamespaceModal() {
+            showNamespaceMessage('新建命名空间（功能开发中）', 'info');
+        }
+        
+        // 命名空间管理内容加载
+        function loadNamespaceContent() {
+            document.getElementById('namespaceContent').style.display = 'block';
+            // 加载集群列表
+            loadClustersForNamespaces();
+            // 初始化表格
+            const namespacesTable = document.getElementById('namespacesTable').getElementsByTagName('tbody')[0];
+            namespacesTable.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #999;">请选择集群查看命名空间列表</td></tr>';
+        }
+        
+        // 全局变量存储工作负载数据
+        let allWorkloads = [];
+        let currentWorkloadCluster = '';
+        let currentWorkloadNamespace = '';
+        let currentWorkloadType = '';
+        
+        // 加载命名空间列表（用于工作负载管理）
+        function loadWorkloadNamespaces() {
+            const cluster = document.getElementById('workloadCluster').value;
+            const namespaceSelect = document.getElementById('workloadNamespace');
+            
+            if (!cluster) {
+                namespaceSelect.innerHTML = '<option value="">请选择命名空间</option>';
+                return;
+            }
+            
+            // 清空命名空间和工作负载表格
+            namespaceSelect.innerHTML = '<option value="">加载命名空间...</option>';
+            const workloadsTable = document.getElementById('workloadsTable').getElementsByTagName('tbody')[0];
+            workloadsTable.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">请选择命名空间查看工作负载</td></tr>';
+            
+            // 调用API获取命名空间列表
+            fetch(`/api/${cluster}/namespaces`)
+                .then(response => response.json())
+                .then(data => {
+                    if (Array.isArray(data)) {
+                        namespaceSelect.innerHTML = '<option value="">请选择命名空间</option>';
+                        data.forEach(ns => {
+                            const option = document.createElement('option');
+                            option.value = ns.name;
+                            option.textContent = ns.name;
+                            namespaceSelect.appendChild(option);
+                        });
+                    } else if (data.success === false) {
+                        namespaceSelect.innerHTML = '<option value="">加载命名空间失败</option>';
+                        showMessage(data.message, 'error');
+                    } else {
+                        namespaceSelect.innerHTML = '<option value="">加载命名空间失败</option>';
+                        showMessage('加载命名空间失败: 返回数据格式错误', 'error');
+                    }
+                })
+                .catch(error => {
+                    namespaceSelect.innerHTML = '<option value="">加载命名空间失败</option>';
+                    showMessage('加载命名空间失败: ' + error.message, 'error');
+                });
+        }
+        
+        // 显示工作负载消息
+        function showWorkloadMessage(text, type) {
+            const messageDiv = document.getElementById('workloadMessage') || document.createElement('div');
+            messageDiv.id = 'workloadMessage';
+            messageDiv.className = 'message-container';
+            messageDiv.innerHTML = `<div class="message ${type}">${text}</div>`;
+            
+            // 添加到container中
+            const container = document.querySelector('#workloadContent .container');
+            const table = document.getElementById('workloadsTable');
+            container.insertBefore(messageDiv, table);
+            
+            setTimeout(() => {
+                messageDiv.innerHTML = '';
+            }, 3000);
+        }
+        
+        // 加载工作负载列表
+        function loadWorkloadsList() {
+            const cluster = document.getElementById('workloadCluster').value;
+            const namespace = document.getElementById('workloadNamespace').value;
+            const workloadType = document.getElementById('workloadTypeFilter').value;
+            const workloadsTable = document.getElementById('workloadsTable').getElementsByTagName('tbody')[0];
+            
+            if (!cluster || !namespace) {
+                workloadsTable.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">请选择集群和命名空间查看工作负载</td></tr>';
+                allWorkloads = [];
+                currentWorkloadCluster = '';
+                currentWorkloadNamespace = '';
+                currentWorkloadType = '';
+                return;
+            }
+            
+            // 更新当前选择
+            currentWorkloadCluster = cluster;
+            currentWorkloadNamespace = namespace;
+            currentWorkloadType = workloadType;
+            
+            // 显示加载状态
+            workloadsTable.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">加载工作负载列表...</td></tr>';
+            
+            // 构建API请求URL
+            let url = `/api/${cluster}/${namespace}/workloads`;
+            if (workloadType) {
+                url += `?type=${workloadType}`;
+            }
+            
+            // 调用API获取工作负载列表
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (Array.isArray(data)) {
+                        // 存储工作负载数据到全局变量
+                        allWorkloads = data;
+                        
+                        if (data.length === 0) {
+                            workloadsTable.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">该命名空间下没有工作负载</td></tr>';
+                            return;
+                        }
+                        
+                        // 渲染工作负载列表
+                        renderWorkloads(data);
+                    } else if (data.success === false) {
+                        // 服务器返回了错误信息
+                        showWorkloadMessage(data.message, 'error');
+                        workloadsTable.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #dc2626;">加载工作负载列表失败</td></tr>';
+                        allWorkloads = [];
+                    } else {
+                        showWorkloadMessage('加载工作负载列表失败: 返回数据格式错误', 'error');
+                        workloadsTable.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #dc2626;">加载工作负载列表失败</td></tr>';
+                        allWorkloads = [];
+                    }
+                })
+                .catch(error => {
+                    showWorkloadMessage('加载工作负载列表失败: ' + error.message, 'error');
+                    const workloadsTable = document.getElementById('workloadsTable').getElementsByTagName('tbody')[0];
+                    workloadsTable.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #dc2626;">加载工作负载列表失败</td></tr>';
+                    allWorkloads = [];
+                });
+        }
+        
+        // 渲染工作负载列表
+        function renderWorkloads(workloads) {
+            const workloadsTable = document.getElementById('workloadsTable').getElementsByTagName('tbody')[0];
+            
+            const cluster = document.getElementById('workloadCluster').value;
+            const namespace = document.getElementById('workloadNamespace').value;
+            let rows = '';
+            workloads.forEach(workload => {
+                // 格式化创建时间
+                const creationTime = new Date(workload.creation_time).toLocaleString('zh-CN');
+                
+                rows += `
+                    <tr>
+                        <td style="text-align: center;">${workload.name}</td>
+                        <td style="text-align: center;">${workload.type}</td>
+                        <td style="text-align: center;">${workload.namespace}</td>
+                        <td style="text-align: center;">${workload.ready_replicas}/${workload.desired_replicas}</td>
+                        <td style="text-align: center;">${workload.status}</td>
+                        <td style="text-align: center;">${creationTime}</td>
+                        <td style="text-align: center;">
+                            <button class="btn-edit" onclick="viewWorkloadYaml('${cluster}', '${namespace}', '${workload.name}', '${workload.type}')">查看YAML</button>
+                            <button class="btn-delete" onclick="removeWorkload('${workload.name}', '${workload.type}')">删除</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            workloadsTable.innerHTML = rows;
+        }
+        
+        // 查看工作负载YAML
+        function viewWorkloadYaml(cluster, namespace, workloadName, workloadType) {
+            // 显示模态框
+            document.getElementById('workloadYamlTitle').textContent = `${workloadType} ${workloadName} YAML配置`;
+            document.getElementById('workloadYamlContent').textContent = '加载中...';
+            document.getElementById('workloadYamlModal').style.display = 'block';
+            
+            // 获取YAML内容
+            fetch(`/api/${cluster}/${namespace}/${workloadType}/${workloadName}/yaml`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('获取YAML失败');
+                    }
+                    return response.text();
+                })
+                .then(yamlContent => {
+                    document.getElementById('workloadYamlContent').textContent = yamlContent;
+                })
+                .catch(error => {
+                    showWorkloadMessage(`获取${workloadType} ${workloadName}的YAML失败: ${error.message}`, 'error');
+                    document.getElementById('workloadYamlContent').textContent = `获取YAML失败: ${error.message}`;
+                });
+        }
+        
+        // 关闭工作负载YAML模态框
+        function closeWorkloadYamlModal() {
+            document.getElementById('workloadYamlModal').style.display = 'none';
+        }
+        
+        // 删除工作负载（占位函数）
+        function removeWorkload(workloadName, workloadType) {
+            if (confirm(`确定要删除工作负载 ${workloadName} 吗？`)) {
+                showWorkloadMessage(`删除工作负载: ${workloadName}（功能开发中）`, 'info');
+            }
+        }
+        
+        // 搜索工作负载
+        function searchWorkloads() {
+            const searchTerm = document.getElementById('workloadSearch').value.trim().toLowerCase();
+            
+            if (!searchTerm) {
+                // 如果搜索词为空，显示所有工作负载
+                renderWorkloads(allWorkloads);
+                return;
+            }
+            
+            // 筛选匹配的工作负载
+            const filteredWorkloads = allWorkloads.filter(workload => {
+                const workloadName = workload.name.toLowerCase();
+                return workloadName.includes(searchTerm);
+            });
+            
+            // 渲染筛选后的工作负载
+            const workloadsTable = document.getElementById('workloadsTable').getElementsByTagName('tbody')[0];
+            
+            if (filteredWorkloads.length === 0) {
+                workloadsTable.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">没有找到匹配的工作负载</td></tr>';
+                return;
+            }
+            
+            renderWorkloads(filteredWorkloads);
+        }
+        
+        // 清空搜索
+        function clearWorkloadSearch() {
+            document.getElementById('workloadSearch').value = '';
+            // 显示所有工作负载
+            renderWorkloads(allWorkloads);
+        }
+        
+        // 工作负载管理内容加载
+        function loadWorkloadContent() {
+            document.getElementById('workloadContent').style.display = 'block';
+            // 加载集群列表
+            loadClustersForLoad('workloadCluster');
+            // 初始化表格
+            const workloadsTable = document.getElementById('workloadsTable').getElementsByTagName('tbody')[0];
+            workloadsTable.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">请选择集群和命名空间查看工作负载</td></tr>';
+            // 清空命名空间选择
+            const namespaceSelect = document.getElementById('workloadNamespace');
+            namespaceSelect.innerHTML = '<option value="">请选择集群</option>';
+        }
+        
+        // Pod管理内容加载
+        function loadPodContent() {
+            document.getElementById('podContent').style.display = 'block';
+            // 加载集群列表
+            loadClustersForLoad('podCluster');
+        }
+        
+        // 全局变量：保存所有Pod
+        let allPods = [];
+        
+        // 加载Pod管理的命名空间
+        function loadPodNamespaces() {
+            const clusterSelect = document.getElementById('podCluster');
+            const namespaceSelect = document.getElementById('podNamespace');
+            const workloadSelect = document.getElementById('podWorkload');
+            const cluster = clusterSelect.value;
+            
+            // 清空命名空间选择
+            namespaceSelect.innerHTML = '<option value="">请选择命名空间</option>';
+            // 清空工作负载选择
+            workloadSelect.innerHTML = '<option value="">全部工作负载</option>';
+            
+            // 清空Pod列表
+            const podsTable = document.getElementById('podsTable').getElementsByTagName('tbody')[0];
+            podsTable.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #999;">请选择命名空间</td></tr>';
+            
+            if (!cluster) {
+                return;
+            }
+            
+            fetch(`/api/${cluster}/namespaces`)
+                .then(response => response.json())
+                .then(data => {
+                    if (Array.isArray(data)) {
+                        data.forEach(ns => {
+                            const option = document.createElement('option');
+                            option.value = ns.name;
+                            option.textContent = ns.name;
+                            namespaceSelect.appendChild(option);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('加载命名空间失败:', error);
+                });
+        }
+        
+        // 加载Pod管理的工作负载列表
+        function loadPodWorkloads() {
+            const clusterSelect = document.getElementById('podCluster');
+            const namespaceSelect = document.getElementById('podNamespace');
+            const workloadSelect = document.getElementById('podWorkload');
+            const cluster = clusterSelect.value;
+            const namespace = namespaceSelect.value;
+            
+            // 清空工作负载选择
+            workloadSelect.innerHTML = '<option value="">全部工作负载</option>';
+            
+            // 清空Pod列表
+            const podsTable = document.getElementById('podsTable').getElementsByTagName('tbody')[0];
+            podsTable.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #999;">请选择工作负载</td></tr>';
+            
+            if (!cluster || !namespace) {
+                return;
+            }
+            
+            fetch(`/api/${cluster}/${namespace}/workloads`)
+                .then(response => response.json())
+                .then(data => {
+                    if (Array.isArray(data)) {
+                        data.forEach(workload => {
+                            const option = document.createElement('option');
+                            option.value = `${workload.type}:${workload.name}`;
+                            option.textContent = `${workload.type}: ${workload.name}`;
+                            workloadSelect.appendChild(option);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('加载工作负载失败:', error);
+                });
+        }
+        
+        // 渲染Pod列表
+        function renderPods(pods, cluster, namespace) {
+            const podsTable = document.getElementById('podsTable').getElementsByTagName('tbody')[0];
+            
+            if (pods.length === 0) {
+                podsTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">该命名空间下没有Pod</td></tr>';
+                return;
+            }
+            
+            let rows = '';
+            pods.forEach(pod => {
+                // 判断是否已踢出负载：load标签值为done表示已踢出
+                const hasRemoveload = pod.has_removeload || false;
+                const hasRemoveloadText = hasRemoveload ? '<span class="has-removeload">是</span>' : '<span class="no-removeload">否</span>';
+                
+                // 操作按钮：根据是否已踢出负载显示不同按钮
+                const actionButtons = hasRemoveload ? 
+                    `<button class="restore" onclick="restoreTraffic('${cluster}', '${namespace}', '${pod.name}', 'loadPodsList')">恢复流量</button>` : 
+                    `<button class="remove" onclick="removeLoad('${cluster}', '${namespace}', '${pod.name}', 'loadPodsList')">踢出负载</button>`;
+                
+                rows += `
+                    <tr>
+                        <td>${pod.name}</td>
+                        <td><span class="status ${pod.status}">${pod.status}</span></td>
+                        <td>${pod.node_ip || '-'}</td>
+                        <td>${pod.pod_ip || '-'}</td>
+                        <td>${pod.restart_count || 0}</td>
+                        <td>${hasRemoveloadText}</td>
+                        <td>${pod.created_time || '-'}</td>
+                        <td class="action-buttons">${actionButtons}</td>
+                    </tr>
+                `;
+            });
+            
+            podsTable.innerHTML = rows;
+        }
+        
+        // 加载Pod列表
+        function loadPodsList() {
+            const clusterSelect = document.getElementById('podCluster');
+            const namespaceSelect = document.getElementById('podNamespace');
+            const workloadSelect = document.getElementById('podWorkload');
+            const cluster = clusterSelect.value;
+            const namespace = namespaceSelect.value;
+            const workload = workloadSelect.value;
+            const podsTable = document.getElementById('podsTable').getElementsByTagName('tbody')[0];
+            
+            if (!cluster || !namespace) {
+                podsTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">请选择集群和命名空间</td></tr>';
+                allPods = [];
+                return;
+            }
+            
+            // 显示加载状态
+            podsTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">加载中...</td></tr>';
+            
+            let apiUrl;
+            if (workload && workload !== '') {
+                // 如果选择了工作负载，获取该工作负载的Pod
+                const [workloadType, workloadName] = workload.split(':');
+                apiUrl = `/api/${cluster}/${namespace}/${workloadType}/${workloadName}/pods`;
+            } else {
+                // 获取所有Pod
+                apiUrl = `/api/${cluster}/${namespace}/pods`;
+            }
+            
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    if (Array.isArray(data)) {
+                        // 保存所有Pod到全局变量
+                        allPods = data;
+                        
+                        // 渲染Pod列表
+                        renderPods(data, cluster, namespace);
+                    } else if (data.success === false) {
+                        podsTable.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #ff6b6b;">${data.message}</td></tr>`;
+                        allPods = [];
+                    } else {
+                        podsTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #ff6b6b;">加载Pod列表失败</td></tr>';
+                        allPods = [];
+                    }
+                })
+                .catch(error => {
+                    console.error('加载Pod列表失败:', error);
+                    podsTable.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #ff6b6b;">加载失败: ${error.message}</td></tr>`;
+                    allPods = [];
+                });
+        }
+        
+        // 搜索Pod
+        function searchPods() {
+            const searchTerm = document.getElementById('podSearch').value.trim().toLowerCase();
+            const cluster = document.getElementById('podCluster').value;
+            const namespace = document.getElementById('podNamespace').value;
+            const podsTable = document.getElementById('podsTable').getElementsByTagName('tbody')[0];
+            
+            if (!cluster || !namespace) {
+                podsTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">请选择集群和命名空间</td></tr>';
+                return;
+            }
+            
+            if (!searchTerm) {
+                // 如果搜索词为空，显示所有Pod
+                renderPods(allPods, cluster, namespace);
+                return;
+            }
+            
+            // 筛选匹配的Pod
+            const filteredPods = allPods.filter(pod => {
+                const podName = pod.name.toLowerCase();
+                return podName.includes(searchTerm);
+            });
+            
+            // 渲染筛选后的Pod
+            if (filteredPods.length === 0) {
+                podsTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">没有找到匹配的Pod</td></tr>';
+                return;
+            }
+            
+            renderPods(filteredPods, cluster, namespace);
+        }
+        
+        // 清空Pod搜索
+        function clearPodSearch() {
+            document.getElementById('podSearch').value = '';
+            const cluster = document.getElementById('podCluster').value;
+            const namespace = document.getElementById('podNamespace').value;
+            renderPods(allPods, cluster, namespace);
+        }
+        
+        // 显示服务与路由消息
+        function showServiceMessage(text, type) {
+            const messageDiv = document.getElementById('serviceMessage') || document.createElement('div');
+            messageDiv.id = 'serviceMessage';
+            messageDiv.className = 'message-container';
+            messageDiv.innerHTML = `<div class="message ${type}">${text}</div>`;
+            
+            // 添加到container中
+            const container = document.querySelector('#serviceContent .container');
+            const table = document.getElementById('servicesTable');
+            container.insertBefore(messageDiv, table);
+            
+            setTimeout(() => {
+                messageDiv.innerHTML = '';
+            }, 3000);
+        }
+        
+        // 渲染服务与路由列表
+        function renderServices(services) {
+            const servicesTable = document.getElementById('servicesTable').getElementsByTagName('tbody')[0];
+            const cluster = document.getElementById('serviceCluster').value;
+            const namespace = document.getElementById('serviceNamespace').value;
+            
+            if (services.length === 0) {
+                servicesTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">该命名空间下没有服务与路由</td></tr>';
+                return;
+            }
+            
+            let rows = '';
+            services.forEach(service => {
+                // 格式化创建时间
+                const creationTime = new Date(service.creation_time).toLocaleString('zh-CN');
+                
+                rows += `
+                    <tr>
+                        <td style="text-align: center;">${service.name}</td>
+                        <td style="text-align: center;">${service.type}</td>
+                        <td style="text-align: center;">${service.namespace}</td>
+                        <td style="text-align: center;">${service.ip || '-'}</td>
+                        <td style="text-align: center;">${service.ports || '-'}</td>
+                        <td style="text-align: center;">${service.status}</td>
+                        <td style="text-align: center;">${creationTime}</td>
+                        <td style="text-align: center;">
+                            <button class="btn-edit" onclick="viewServiceDetails('${cluster}', '${namespace}', '${service.name}', '${service.type}')">查看详情</button>
+                            <button class="btn-delete" onclick="deleteService('${service.name}', '${service.type}')">删除</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            servicesTable.innerHTML = rows;
+        }
+        
+        // 加载服务与路由的命名空间
+        function loadServiceNamespaces() {
+            const clusterSelect = document.getElementById('serviceCluster');
+            const namespaceSelect = document.getElementById('serviceNamespace');
+            const cluster = clusterSelect.value;
+            
+            // 清空命名空间选择
+            namespaceSelect.innerHTML = '<option value="">请选择命名空间</option>';
+            
+            // 清空服务列表
+            const servicesTable = document.getElementById('servicesTable').getElementsByTagName('tbody')[0];
+            servicesTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">请选择命名空间</td></tr>';
+            
+            if (!cluster) {
+                return;
+            }
+            
+            fetch(`/api/${cluster}/namespaces`)
+                .then(response => response.json())
+                .then(data => {
+                    if (Array.isArray(data)) {
+                        data.forEach(ns => {
+                            const option = document.createElement('option');
+                            option.value = ns.name;
+                            option.textContent = ns.name;
+                            namespaceSelect.appendChild(option);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('加载命名空间失败:', error);
+                    showServiceMessage('加载命名空间失败: ' + error.message, 'error');
+                });
+        }
+        
+        // 加载服务与路由列表
+        function loadServicesList() {
+            const cluster = document.getElementById('serviceCluster').value;
+            const namespace = document.getElementById('serviceNamespace').value;
+            const serviceType = document.getElementById('serviceTypeFilter').value;
+            const servicesTable = document.getElementById('servicesTable').getElementsByTagName('tbody')[0];
+            
+            if (!cluster || !namespace) {
+                servicesTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">请选择集群和命名空间</td></tr>';
+                return;
+            }
+            
+            // 显示加载状态
+            servicesTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">加载中...</td></tr>';
+            
+            let url = `/api/${cluster}/${namespace}/services`;
+            if (serviceType) {
+                url += `?type=${serviceType}`;
+            }
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (Array.isArray(data)) {
+                        // 渲染服务与路由列表
+                        renderServices(data);
+                    } else if (data.success === false) {
+                        // 服务器返回了错误信息
+                        showServiceMessage(data.message, 'error');
+                        servicesTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #dc2626;">加载服务与路由列表失败</td></tr>';
+                    } else {
+                        showServiceMessage('加载服务与路由列表失败: 返回数据格式错误', 'error');
+                        servicesTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #dc2626;">加载服务与路由列表失败</td></tr>';
+                    }
+                })
+                .catch(error => {
+                    console.error('加载服务与路由列表失败:', error);
+                    showServiceMessage('加载服务与路由列表失败: ' + error.message, 'error');
+                    servicesTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #dc2626;">加载服务与路由列表失败</td></tr>';
+                });
+        }
+        
+        // 查看服务详情
+        function viewServiceDetails(cluster, namespace, serviceName, serviceType) {
+            // 显示模态框
+            document.getElementById('serviceYamlTitle').textContent = `${serviceType} ${serviceName} YAML配置`;
+            document.getElementById('serviceYamlContent').textContent = '加载中...';
+            document.getElementById('serviceYamlModal').style.display = 'block';
+            
+            // 获取YAML内容
+            fetch(`/api/${cluster}/${namespace}/services/${serviceType}/${serviceName}/yaml`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('获取YAML失败');
+                    }
+                    return response.text();
+                })
+                .then(yamlContent => {
+                    document.getElementById('serviceYamlContent').textContent = yamlContent;
+                })
+                .catch(error => {
+                    showServiceMessage(`获取${serviceType} ${serviceName}的YAML失败: ${error.message}`, 'error');
+                    document.getElementById('serviceYamlContent').textContent = `获取YAML失败: ${error.message}`;
+                });
+        }
+        
+        // 关闭服务YAML模态框
+        function closeServiceYamlModal() {
+            document.getElementById('serviceYamlModal').style.display = 'none';
+        }
+        
+        // 删除服务（占位函数）
+        function deleteService(serviceName, serviceType) {
+            if (confirm(`确定要删除${serviceType} ${serviceName}吗？`)) {
+                showServiceMessage(`删除${serviceType} ${serviceName}（功能开发中）`, 'info');
+            }
+        }
+        
+        // 服务与路由管理内容加载
+        function loadServiceContent() {
+            document.getElementById('serviceContent').style.display = 'block';
+            // 加载集群列表
+            loadClustersForLoad('serviceCluster');
+            
+            // 初始化表格
+            const servicesTable = document.getElementById('servicesTable').getElementsByTagName('tbody')[0];
+            servicesTable.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">请选择集群和命名空间</td></tr>';
+            
+            // 清空命名空间选择
+            const namespaceSelect = document.getElementById('serviceNamespace');
+            namespaceSelect.innerHTML = '<option value="">请选择命名空间</option>';
+        }
+        
+        // 配置管理内容加载
+        function loadConfigContent() {
+            document.getElementById('configContent').style.display = 'block';
+            // TODO: 实现配置列表加载逻辑
+            // 加载集群列表
+            const configClusterSelect = document.getElementById('configCluster');
+            // 这里可以复用现有的loadClustersForLoad函数或创建新的函数
+            loadClustersForLoad('configCluster');
+        }
+        
+        // 存储管理内容加载
+        function loadStorageContent() {
+            document.getElementById('storageContent').style.display = 'block';
+            // TODO: 实现存储列表加载逻辑
+            // 加载集群列表
+            const storageClusterSelect = document.getElementById('storageCluster');
+            // 这里可以复用现有的loadClustersForLoad函数或创建新的函数
+            loadClustersForLoad('storageCluster');
+        }
+        
+        // 加载集群列表（用于不同模块）
+        function loadClustersForLoad(selectId) {
+            fetch('/api/clusters')
+                .then(response => response.json())
+                .then(data => {
+                    const clusterSelect = document.getElementById(selectId);
+                    clusterSelect.innerHTML = '<option value="">请选择集群</option>';
+                    data.forEach(cluster => {
+                        const option = document.createElement('option');
+                        option.value = cluster.name;
+                        option.textContent = cluster.display_name || cluster.name;
+                        clusterSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    showMessage('加载集群失败: ' + error.message, 'error');
                 });
         }
         
