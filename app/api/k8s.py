@@ -522,3 +522,40 @@ def get_service_yaml(cluster, namespace, service_type, name):
         print(f"Error in get_service_yaml: {error_msg}")
         print(f"Stack trace: {stack_trace}")
         return jsonify({'success': False, 'message': error_msg}), 500
+
+@k8s_bp.route('/<cluster>/<namespace>/configs', methods=['GET'])
+@login_required
+@permission_required('read')
+def get_configs(cluster, namespace):
+    """获取指定集群和命名空间的配置资源"""
+    import traceback
+    kubeconfig_dir = current_app.config['KUBECONFIG_DIR']
+    k8s_service = K8sService(kubeconfig_dir)
+    try:
+        config_type = request.args.get('type')
+        configs = k8s_service.get_configs(cluster, namespace, config_type)
+        return jsonify(configs)
+    except Exception as e:
+        error_msg = f"{type(e).__name__}: {str(e)}"
+        stack_trace = traceback.format_exc()
+        print(f"Error in get_configs: {error_msg}")
+        print(f"Stack trace: {stack_trace}")
+        return jsonify({'success': False, 'message': error_msg}), 500
+
+@k8s_bp.route('/<cluster>/<namespace>/configs/<config_type>/<name>/yaml', methods=['GET'])
+@login_required
+@permission_required('read')
+def get_config_yaml(cluster, namespace, config_type, name):
+    """获取指定配置资源的YAML配置"""
+    import traceback
+    kubeconfig_dir = current_app.config['KUBECONFIG_DIR']
+    k8s_service = K8sService(kubeconfig_dir)
+    try:
+        yaml_content = k8s_service.get_config_yaml(cluster, namespace, name, config_type)
+        return yaml_content, 200, {'Content-Type': 'text/plain'}
+    except Exception as e:
+        error_msg = f"{type(e).__name__}: {str(e)}"
+        stack_trace = traceback.format_exc()
+        print(f"Error in get_config_yaml: {error_msg}")
+        print(f"Stack trace: {stack_trace}")
+        return jsonify({'success': False, 'message': error_msg}), 500

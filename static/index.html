@@ -1154,6 +1154,17 @@
             
             <!-- 服务与路由管理内容 -->
             <div id="serviceContent" style="display: none;">
+                <style>
+                    /* 服务与路由页面样式 */
+                    #serviceContent .content-title,
+                    #serviceContent .content-subtitle {
+                        text-align: left;
+                    }
+                    
+                    #serviceContent .user-table th {
+                        text-align: center !important;
+                    }
+                </style>
                 <div class="content-header">
                     <h1 class="content-title">服务与路由</h1>
                     <p class="content-subtitle">管理Kubernetes服务和路由</p>
@@ -1205,6 +1216,12 @@
             
             <!-- 配置管理内容 -->
             <div id="configContent" style="display: none;">
+                <style>
+                    /* 配置管理页面样式 */
+                    #configContent .user-table th {
+                        text-align: center !important;
+                    }
+                </style>
                 <div class="content-header">
                     <h1 class="content-title">配置管理</h1>
                     <p class="content-subtitle">管理Kubernetes配置资源</p>
@@ -1372,6 +1389,20 @@
             </div>
             <div style="text-align: right; margin-top: 20px;">
                 <button type="button" class="btn-primary" onclick="closeServiceYamlModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 配置资源YAML查看模态框 -->
+    <div id="configYamlModal" class="modal">
+        <div class="modal-content" style="width: 90%; max-width: 1200px; max-height: 80vh; overflow: auto;">
+            <span class="close" onclick="closeConfigYamlModal()">&times;</span>
+            <h3 id="configYamlTitle">配置资源YAML配置</h3>
+            <div style="margin-top: 20px;">
+                <pre style="background-color: #f8fafc; padding: 16px; border-radius: 8px; font-family: monospace; white-space: pre-wrap; word-wrap: break-word;"><code id="configYamlContent">加载中...</code></pre>
+            </div>
+            <div style="text-align: right; margin-top: 20px;">
+                <button type="button" class="btn-primary" onclick="closeConfigYamlModal()">关闭</button>
             </div>
         </div>
     </div>
@@ -3108,11 +3139,143 @@
         // 配置管理内容加载
         function loadConfigContent() {
             document.getElementById('configContent').style.display = 'block';
-            // TODO: 实现配置列表加载逻辑
             // 加载集群列表
-            const configClusterSelect = document.getElementById('configCluster');
-            // 这里可以复用现有的loadClustersForLoad函数或创建新的函数
             loadClustersForLoad('configCluster');
+        }
+        
+        // 加载配置管理的命名空间
+        function loadConfigNamespaces() {
+            const clusterSelect = document.getElementById('configCluster');
+            const namespaceSelect = document.getElementById('configNamespace');
+            const cluster = clusterSelect.value;
+            
+            // 清空命名空间选择
+            namespaceSelect.innerHTML = '<option value="">请选择命名空间</option>';
+            
+            // 清空配置列表
+            const configsTable = document.getElementById('configsTable').getElementsByTagName('tbody')[0];
+            configsTable.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">请选择命名空间</td></tr>';
+            
+            if (!cluster) {
+                return;
+            }
+            
+            fetch(`/api/${cluster}/namespaces`)
+                .then(response => response.json())
+                .then(data => {
+                    if (Array.isArray(data)) {
+                        data.forEach(ns => {
+                            const option = document.createElement('option');
+                            option.value = ns.name;
+                            option.textContent = ns.name;
+                            namespaceSelect.appendChild(option);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('获取命名空间列表失败:', error);
+                    namespaceSelect.innerHTML = '<option value="">获取命名空间失败</option>';
+                });
+        }
+        
+        // 加载配置资源列表
+        function loadConfigsList() {
+            const cluster = document.getElementById('configCluster').value;
+            const namespace = document.getElementById('configNamespace').value;
+            const configType = document.getElementById('configTypeFilter').value;
+            const configsTable = document.getElementById('configsTable').getElementsByTagName('tbody')[0];
+            
+            if (!cluster || !namespace) {
+                configsTable.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">请选择集群和命名空间</td></tr>';
+                return;
+            }
+            
+            // 显示加载状态
+            configsTable.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">加载中...</td></tr>';
+            
+            // 构建API URL
+            let apiUrl = `/api/${cluster}/${namespace}/configs`;
+            if (configType) {
+                apiUrl += `?type=${configType}`;
+            }
+            
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    if (Array.isArray(data)) {
+                        renderConfigs(data);
+                    } else if (data.success === false) {
+                        configsTable.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #dc2626;">${data.message}</td></tr>`;
+                    }
+                })
+                .catch(error => {
+                    console.error('加载配置资源列表失败:', error);
+                    configsTable.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #dc2626;">加载配置资源失败</td></tr>';
+                });
+        }
+        
+        // 渲染配置资源列表
+        function renderConfigs(configs) {
+            const configsTable = document.getElementById('configsTable').getElementsByTagName('tbody')[0];
+            const cluster = document.getElementById('configCluster').value;
+            const namespace = document.getElementById('configNamespace').value;
+            
+            if (configs.length === 0) {
+                configsTable.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">该命名空间下没有配置资源</td></tr>';
+                return;
+            }
+            
+            let rows = '';
+            configs.forEach(config => {
+                // 格式化创建时间
+                const creationTime = new Date(config.creation_time).toLocaleString('zh-CN');
+                
+                rows += `
+                    <tr>
+                        <td>${config.name}</td>
+                        <td>${config.type}</td>
+                        <td>${config.namespace}</td>
+                        <td>${config.data_count}</td>
+                        <td>${creationTime}</td>
+                        <td>
+                            <button class="btn-secondary" onclick="viewConfigYaml('${cluster}', '${namespace}', '${config.name}', '${config.type}')">查看YAML</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            configsTable.innerHTML = rows;
+        }
+        
+        // 查看配置资源的YAML
+        function viewConfigYaml(cluster, namespace, name, configType) {
+            // 显示模态框
+            document.getElementById('configYamlTitle').textContent = `${configType} ${name} YAML配置`;
+            document.getElementById('configYamlContent').textContent = '加载中...';
+            document.getElementById('configYamlModal').style.display = 'block';
+            
+            const apiUrl = `/api/${cluster}/${namespace}/configs/${configType}/${name}/yaml`;
+            
+            fetch(apiUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('获取YAML失败');
+                    }
+                    return response.text();
+                })
+                .then(yamlContent => {
+                    // 显示YAML内容
+                    document.getElementById('configYamlContent').textContent = yamlContent;
+                })
+                .catch(error => {
+                    console.error('获取YAML失败:', error);
+                    document.getElementById('configYamlContent').textContent = `获取YAML失败: ${error.message}`;
+                });
+        }
+        
+        // 关闭配置资源YAML模态框
+        function closeConfigYamlModal() {
+            document.getElementById('configYamlModal').style.display = 'none';
         }
         
         // 存储管理内容加载

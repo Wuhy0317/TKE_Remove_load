@@ -515,3 +515,74 @@ class K8sService:
                 'minor': '0',
                 'git_version': 'Unknown'
             }
+    
+    def get_configs(self, cluster, namespace, config_type=None):
+        """获取指定集群和命名空间的配置资源"""
+        k8s_client = K8sClient(cluster, self.kubeconfig_dir)
+        core_v1 = k8s_client.get_core_client()
+        
+        configs = []
+        
+        try:
+            # 获取ConfigMap
+            if config_type == 'configmap' or not config_type:
+                configmap_list = core_v1.list_namespaced_config_map(namespace)
+                for configmap in configmap_list.items:
+                    # 计算数据项数量
+                    data_count = len(configmap.data) if configmap.data else 0
+                    
+                    configs.append({
+                        'name': configmap.metadata.name,
+                        'type': 'ConfigMap',
+                        'namespace': namespace,
+                        'data_count': data_count,
+                        'creation_time': configmap.metadata.creation_timestamp.isoformat() if configmap.metadata.creation_timestamp else ""
+                    })
+            
+            # 获取Secret
+            if config_type == 'secret' or not config_type:
+                secret_list = core_v1.list_namespaced_secret(namespace)
+                for secret in secret_list.items:
+                    # 计算数据项数量
+                    data_count = len(secret.data) if secret.data else 0
+                    
+                    configs.append({
+                        'name': secret.metadata.name,
+                        'type': 'Secret',
+                        'namespace': namespace,
+                        'data_count': data_count,
+                        'creation_time': secret.metadata.creation_timestamp.isoformat() if secret.metadata.creation_timestamp else ""
+                    })
+        except Exception as e:
+            print(f"获取配置资源列表失败: {e}")
+            import traceback
+            traceback.print_exc()
+            raise
+        
+        return configs
+    
+    def get_config_yaml(self, cluster, namespace, name, config_type):
+        """获取指定配置资源的YAML配置"""
+        k8s_client = K8sClient(cluster, self.kubeconfig_dir)
+        core_v1 = k8s_client.get_core_client()
+        
+        try:
+            if config_type == 'ConfigMap':
+                # 获取ConfigMap的YAML
+                config = core_v1.read_namespaced_config_map(name, namespace)
+            elif config_type == 'Secret':
+                # 获取Secret的YAML
+                config = core_v1.read_namespaced_secret(name, namespace)
+            else:
+                raise ValueError(f"不支持的配置资源类型: {config_type}")
+            
+            # 使用kubernetes.client.ApiClient的serialize方法将对象转换为YAML
+            api_client = kubernetes.client.ApiClient()
+            config_dict = api_client.sanitize_for_serialization(config)
+            import yaml
+            return yaml.dump(config_dict)
+        except Exception as e:
+            print(f"获取配置资源YAML失败: {e}")
+            import traceback
+            traceback.print_exc()
+            raise
