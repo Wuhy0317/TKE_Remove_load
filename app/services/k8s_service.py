@@ -586,3 +586,101 @@ class K8sService:
             import traceback
             traceback.print_exc()
             raise
+    
+    def get_storage(self, cluster, namespace, storage_type=None):
+        """获取指定集群和命名空间的存储资源"""
+        k8s_client = K8sClient(cluster, self.kubeconfig_dir)
+        core_v1 = k8s_client.get_core_client()
+        storage_v1 = k8s_client.get_storage_client()
+        
+        storage = []
+        
+        try:
+            # 获取PersistentVolumeClaim
+            if storage_type == 'pvc' or not storage_type:
+                pvc_list = core_v1.list_namespaced_persistent_volume_claim(namespace)
+                for pvc in pvc_list.items:
+                    # 获取容量信息
+                    capacity = pvc.status.capacity.get('storage', '') if pvc.status.capacity else ''
+                    
+                    # 获取状态
+                    status = pvc.status.phase or 'Unknown'
+                    
+                    storage.append({
+                        'name': pvc.metadata.name,
+                        'type': 'PersistentVolumeClaim',
+                        'namespace': namespace,
+                        'capacity': capacity,
+                        'status': status,
+                        'creation_time': pvc.metadata.creation_timestamp.isoformat() if pvc.metadata.creation_timestamp else ""
+                    })
+            
+            # 获取PersistentVolume
+            if storage_type == 'pv' or not storage_type:
+                pv_list = core_v1.list_persistent_volume()
+                for pv in pv_list.items:
+                    # 获取容量信息
+                    capacity = pv.spec.capacity.get('storage', '') if pv.spec.capacity else ''
+                    
+                    # 获取状态
+                    status = pv.status.phase or 'Unknown'
+                    
+                    storage.append({
+                        'name': pv.metadata.name,
+                        'type': 'PersistentVolume',
+                        'namespace': pv.spec.claim_ref.namespace if pv.spec.claim_ref else '',
+                        'capacity': capacity,
+                        'status': status,
+                        'creation_time': pv.metadata.creation_timestamp.isoformat() if pv.metadata.creation_timestamp else ""
+                    })
+            
+            # 获取StorageClass
+            if storage_type == 'storageclass' or not storage_type:
+                sc_list = storage_v1.list_storage_class()
+                for sc in sc_list.items:
+                    # StorageClass没有容量和命名空间，设置为空
+                    storage.append({
+                        'name': sc.metadata.name,
+                        'type': 'StorageClass',
+                        'namespace': '',
+                        'capacity': '',
+                        'status': 'Available',
+                        'creation_time': sc.metadata.creation_timestamp.isoformat() if sc.metadata.creation_timestamp else ""
+                    })
+        except Exception as e:
+            print(f"获取存储资源列表失败: {e}")
+            import traceback
+            traceback.print_exc()
+            raise
+        
+        return storage
+    
+    def get_storage_yaml(self, cluster, namespace, name, storage_type):
+        """获取指定存储资源的YAML配置"""
+        k8s_client = K8sClient(cluster, self.kubeconfig_dir)
+        core_v1 = k8s_client.get_core_client()
+        storage_v1 = k8s_client.get_storage_client()
+        
+        try:
+            if storage_type == 'PersistentVolumeClaim':
+                # 获取PersistentVolumeClaim的YAML
+                storage_resource = core_v1.read_namespaced_persistent_volume_claim(name, namespace)
+            elif storage_type == 'PersistentVolume':
+                # 获取PersistentVolume的YAML
+                storage_resource = core_v1.read_persistent_volume(name)
+            elif storage_type == 'StorageClass':
+                # 获取StorageClass的YAML
+                storage_resource = storage_v1.read_storage_class(name)
+            else:
+                raise ValueError(f"不支持的存储资源类型: {storage_type}")
+            
+            # 使用kubernetes.client.ApiClient的serialize方法将对象转换为YAML
+            api_client = kubernetes.client.ApiClient()
+            storage_dict = api_client.sanitize_for_serialization(storage_resource)
+            import yaml
+            return yaml.dump(storage_dict)
+        except Exception as e:
+            print(f"获取存储资源YAML失败: {e}")
+            import traceback
+            traceback.print_exc()
+            raise

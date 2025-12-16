@@ -66,6 +66,8 @@ class K8sClient:
             return kubernetes.client.VersionApi(api_client)
         elif client_type == 'networking':
             return kubernetes.client.NetworkingV1Api(api_client)
+        elif client_type == 'storage':
+            return kubernetes.client.StorageV1Api(api_client)
         else:
             raise ValueError(f'Unknown client type: {client_type}')
     
@@ -92,6 +94,10 @@ class K8sClient:
     def get_networking_client(self):
         """获取NetworkingV1Api客户端"""
         return self._get_client('networking')
+    
+    def get_storage_client(self):
+        """获取StorageV1Api客户端"""
+        return self._get_client('storage')
     
     def get_config_file(self):
         """获取kubeconfig文件路径"""

@@ -1014,6 +1014,12 @@
             
             <!-- 工作负载管理内容 -->
             <div id="workloadContent" style="display: none;">
+                <style>
+                    /* 工作负载页面样式 */
+                    #workloadContent .user-table th {
+                        text-align: center !important;
+                    }
+                </style>
                 <div class="content-header">
                     <h1 class="content-title">工作负载</h1>
                     <p class="content-subtitle">管理Kubernetes工作负载</p>
@@ -1271,6 +1277,12 @@
             
             <!-- 存储管理内容 -->
             <div id="storageContent" style="display: none;">
+                <style>
+                    /* 存储管理页面样式 */
+                    #storageContent .user-table th {
+                        text-align: center !important;
+                    }
+                </style>
                 <div class="content-header">
                     <h1 class="content-title">存储管理</h1>
                     <p class="content-subtitle">管理Kubernetes存储资源</p>
@@ -1403,6 +1415,20 @@
             </div>
             <div style="text-align: right; margin-top: 20px;">
                 <button type="button" class="btn-primary" onclick="closeConfigYamlModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 存储资源YAML查看模态框 -->
+    <div id="storageYamlModal" class="modal">
+        <div class="modal-content" style="width: 90%; max-width: 1200px; max-height: 80vh; overflow: auto;">
+            <span class="close" onclick="closeStorageYamlModal()">&times;</span>
+            <h3 id="storageYamlTitle">存储资源YAML配置</h3>
+            <div style="margin-top: 20px;">
+                <pre style="background-color: #f8fafc; padding: 16px; border-radius: 8px; font-family: monospace; white-space: pre-wrap; word-wrap: break-word;"><code id="storageYamlContent">加载中...</code></pre>
+            </div>
+            <div style="text-align: right; margin-top: 20px;">
+                <button type="button" class="btn-primary" onclick="closeStorageYamlModal()">关闭</button>
             </div>
         </div>
     </div>
@@ -3281,11 +3307,144 @@
         // 存储管理内容加载
         function loadStorageContent() {
             document.getElementById('storageContent').style.display = 'block';
-            // TODO: 实现存储列表加载逻辑
             // 加载集群列表
-            const storageClusterSelect = document.getElementById('storageCluster');
-            // 这里可以复用现有的loadClustersForLoad函数或创建新的函数
             loadClustersForLoad('storageCluster');
+        }
+        
+        // 加载存储管理的命名空间
+        function loadStorageNamespaces() {
+            const clusterSelect = document.getElementById('storageCluster');
+            const namespaceSelect = document.getElementById('storageNamespace');
+            const cluster = clusterSelect.value;
+            
+            // 清空命名空间选择
+            namespaceSelect.innerHTML = '<option value="">请选择命名空间</option>';
+            
+            // 清空存储列表
+            const storageTable = document.getElementById('storageTable').getElementsByTagName('tbody')[0];
+            storageTable.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">请选择命名空间</td></tr>';
+            
+            if (!cluster) {
+                return;
+            }
+            
+            fetch(`/api/${cluster}/namespaces`)
+                .then(response => response.json())
+                .then(data => {
+                    if (Array.isArray(data)) {
+                        data.forEach(ns => {
+                            const option = document.createElement('option');
+                            option.value = ns.name;
+                            option.textContent = ns.name;
+                            namespaceSelect.appendChild(option);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('获取命名空间列表失败:', error);
+                    namespaceSelect.innerHTML = '<option value="">获取命名空间失败</option>';
+                });
+        }
+        
+        // 加载存储资源列表
+        function loadStorageList() {
+            const cluster = document.getElementById('storageCluster').value;
+            const namespace = document.getElementById('storageNamespace').value;
+            const storageType = document.getElementById('storageTypeFilter').value;
+            const storageTable = document.getElementById('storageTable').getElementsByTagName('tbody')[0];
+            
+            if (!cluster || !namespace) {
+                storageTable.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">请选择集群和命名空间</td></tr>';
+                return;
+            }
+            
+            // 显示加载状态
+            storageTable.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">加载中...</td></tr>';
+            
+            // 构建API URL
+            let apiUrl = `/api/${cluster}/${namespace}/storage`;
+            if (storageType) {
+                apiUrl += `?type=${storageType}`;
+            }
+            
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    if (Array.isArray(data)) {
+                        renderStorage(data);
+                    } else if (data.success === false) {
+                        storageTable.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #dc2626;">${data.message}</td></tr>`;
+                    }
+                })
+                .catch(error => {
+                    console.error('加载存储资源列表失败:', error);
+                    storageTable.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #dc2626;">加载存储资源失败</td></tr>';
+                });
+        }
+        
+        // 渲染存储资源列表
+        function renderStorage(storage) {
+            const storageTable = document.getElementById('storageTable').getElementsByTagName('tbody')[0];
+            const cluster = document.getElementById('storageCluster').value;
+            const namespace = document.getElementById('storageNamespace').value;
+            
+            if (storage.length === 0) {
+                storageTable.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">该命名空间下没有存储资源</td></tr>';
+                return;
+            }
+            
+            let rows = '';
+            storage.forEach(item => {
+                // 格式化创建时间
+                const creationTime = new Date(item.creation_time).toLocaleString('zh-CN');
+                
+                rows += `
+                    <tr>
+                        <td>${item.name}</td>
+                        <td>${item.type}</td>
+                        <td>${item.namespace}</td>
+                        <td>${item.capacity}</td>
+                        <td>${item.status}</td>
+                        <td>${creationTime}</td>
+                        <td>
+                            <button class="btn-secondary" onclick="viewStorageYaml('${cluster}', '${namespace}', '${item.name}', '${item.type}')">查看YAML</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            storageTable.innerHTML = rows;
+        }
+        
+        // 查看存储资源的YAML
+        function viewStorageYaml(cluster, namespace, name, storageType) {
+            // 显示模态框
+            document.getElementById('storageYamlTitle').textContent = `${storageType} ${name} YAML配置`;
+            document.getElementById('storageYamlContent').textContent = '加载中...';
+            document.getElementById('storageYamlModal').style.display = 'block';
+            
+            const apiUrl = `/api/${cluster}/${namespace}/storage/${storageType}/${name}/yaml`;
+            
+            fetch(apiUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('获取YAML失败');
+                    }
+                    return response.text();
+                })
+                .then(yamlContent => {
+                    // 显示YAML内容
+                    document.getElementById('storageYamlContent').textContent = yamlContent;
+                })
+                .catch(error => {
+                    console.error('获取YAML失败:', error);
+                    document.getElementById('storageYamlContent').textContent = `获取YAML失败: ${error.message}`;
+                });
+        }
+        
+        // 关闭存储资源YAML模态框
+        function closeStorageYamlModal() {
+            document.getElementById('storageYamlModal').style.display = 'none';
         }
         
         // 加载集群列表（用于不同模块）
