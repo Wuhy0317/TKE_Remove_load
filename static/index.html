@@ -940,12 +940,14 @@
                                 <option value="">请选择集群</option>
                             </select>
                         </div>
-                        <div style="margin-top: 28px; display: flex; gap: 10px; align-items: center;">
+                    </div>
+                    <div style="margin-top: 16px; display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;">
+                        <div style="margin-top: 5px; display: flex; gap: 10px; align-items: center;">
                             <input type="text" id="nodeSearch" placeholder="搜索节点名称或IP..." onkeypress="if(event.key === 'Enter') searchNodes()" style="padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px; width: 300px;">
                             <button class="btn-primary" onclick="searchNodes()">搜索</button>
                             <button class="btn-secondary" onclick="clearNodeSearch()">清空</button>
+                            <button class="btn-primary" onclick="loadNodes()">刷新</button>
                         </div>
-                        <button class="btn-primary" onclick="loadNodes()" style="margin-top: 30px;">刷新</button>
                     </div>
                 </div>
                 <div class="container">
@@ -983,12 +985,12 @@
                                 <option value="">请选择集群</option>
                             </select>
                         </div>
-                        <div style="margin-top: 28px; display: flex; gap: 10px; align-items: center;">
+                    </div>
+                    <div style="margin-top: 16px; display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;">
+                        <div style="margin-top: 5px; display: flex; gap: 10px; align-items: center;">
                             <input type="text" id="namespaceSearch" placeholder="搜索命名空间..." onkeypress="if(event.key === 'Enter') searchNamespaces()" style="padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px; width: 300px;">
                             <button class="btn-primary" onclick="searchNamespaces()">搜索</button>
                             <button class="btn-secondary" onclick="clearNamespaceSearch()">清空</button>
-                        </div>
-                        <div style="margin-top: 30px;">
                             <button class="btn-primary" onclick="loadNamespaces()">刷新</button>
                             <button class="btn-primary" onclick="openAddNamespaceModal()" style="margin-left: 16px;">新建命名空间</button>
                         </div>
@@ -1015,8 +1017,9 @@
             <!-- 工作负载管理内容 -->
             <div id="workloadContent" style="display: none;">
                 <style>
-                    /* 工作负载页面样式 */
-                    #workloadContent .user-table th {
+                    /* 工作负载管理页面样式 */
+                    #workloadContent .user-table th,
+                    #workloadContent .user-table td {
                         text-align: center !important;
                     }
                 </style>
@@ -1064,17 +1067,17 @@
                                 <th style="width: 200px;">名称</th>
                                 <th style="width: 120px;">类型</th>
                                 <th style="width: 150px;">命名空间</th>
-                                <th style="width: 160px;">就绪副本/期望副本</th>
-                                <th style="width: 120px;">状态</th>
+                                <th style="width: 120px;">就绪副本/期望副本</th>
+                                <th style="width: 250px;">Request/Limits</th>
                                 <th style="width: 160px;">创建时间</th>
                                 <th style="width: 100px;">操作</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td colspan="7" style="text-align: center; color: #999;">请选择集群和命名空间</td>
-                            </tr>
-                        </tbody>
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: #999;">请选择集群和命名空间</td>
+                    </tr>
+                </tbody>
                     </table>
                 </div>
             </div>
@@ -1139,7 +1142,7 @@
                     <table class="user-table" id="podsTable">
                         <thead>
                             <tr>
-                                <th style="width: 250px;">Pod名称</th>
+                                <th style="width: 200px;">Pod名称</th>
                                 <th style="width: 120px;">状态</th>
                                 <th style="width: 150px;">节点</th>
                                 <th style="width: 130px;">IP地址</th>
@@ -1201,14 +1204,14 @@
                     <table class="user-table" id="servicesTable">
                         <thead>
                             <tr>
-                                <th>名称</th>
-                                <th>类型</th>
-                                <th>命名空间</th>
-                                <th>IP地址</th>
-                                <th>端口</th>
-                                <th>状态</th>
-                                <th>创建时间</th>
-                                <th>操作</th>
+                                <th style="width: 150px;">名称</th>
+                                <th style="width: 100px;">类型</th>
+                                <th style="width: 130px;">命名空间</th>
+                                <th style="width: 150px;">IP地址</th>
+                                <th style="width: 100px;">端口</th>
+                                <th style="width: 100px;">状态</th>
+                                <th style="width: 180px;">创建时间</th>
+                                <th style="width: 120px;">操作</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1224,7 +1227,8 @@
             <div id="configContent" style="display: none;">
                 <style>
                     /* 配置管理页面样式 */
-                    #configContent .user-table th {
+                    #configContent .user-table th,
+                    #configContent .user-table td {
                         text-align: center !important;
                     }
                 </style>
@@ -1258,7 +1262,7 @@
                     <table class="user-table" id="configsTable">
                         <thead>
                             <tr>
-                                <th style="width: 180px;">名称</th>
+                                <th style="width: 260px;">名称</th>
                                 <th style="width: 120px;">类型</th>
                                 <th style="width: 150px;">命名空间</th>
                                 <th style="width: 100px;">数据项</th>
@@ -1279,7 +1283,8 @@
             <div id="storageContent" style="display: none;">
                 <style>
                     /* 存储管理页面样式 */
-                    #storageContent .user-table th {
+                    #storageContent .user-table th,
+                    #storageContent .user-table td {
                         text-align: center !important;
                     }
                 </style>
@@ -2673,7 +2678,7 @@
                         <td style="text-align: center;">${workload.type}</td>
                         <td style="text-align: center;">${workload.namespace}</td>
                         <td style="text-align: center;">${workload.ready_replicas}/${workload.desired_replicas}</td>
-                        <td style="text-align: center;">${workload.status}</td>
+                        <td style="text-align: center;">${workload.resources || '-'}</td>
                         <td style="text-align: center;">${creationTime}</td>
                         <td style="text-align: center;">
                             <button class="btn-edit" onclick="viewWorkloadYaml('${cluster}', '${namespace}', '${workload.name}', '${workload.type}')">查看YAML</button>

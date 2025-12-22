@@ -68,6 +68,8 @@ class K8sClient:
             return kubernetes.client.NetworkingV1Api(api_client)
         elif client_type == 'storage':
             return kubernetes.client.StorageV1Api(api_client)
+        elif client_type == 'custom_objects':
+            return kubernetes.client.CustomObjectsApi(api_client)
         else:
             raise ValueError(f'Unknown client type: {client_type}')
     
@@ -98,6 +100,10 @@ class K8sClient:
     def get_storage_client(self):
         """获取StorageV1Api客户端"""
         return self._get_client('storage')
+    
+    def get_custom_objects_client(self):
+        """获取CustomObjectsApi客户端，用于访问扩展API如Metrics"""
+        return self._get_client('custom_objects')
     
     def get_config_file(self):
         """获取kubeconfig文件路径"""

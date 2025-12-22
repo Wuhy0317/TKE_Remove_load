@@ -761,5 +761,54 @@
     "action": "login_success",
     "resource": null,
     "details": null
+  },
+  {
+    "timestamp": "2025-12-16T14:33:33.379926",
+    "username": "admin",
+    "action": "logout",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-22T13:52:13.208020",
+    "username": "admin",
+    "action": "login_success",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-22T14:23:22.367365",
+    "username": "admin",
+    "action": "logout",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-22T14:52:40.664995",
+    "username": "admin",
+    "action": "login_success",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-22T16:10:24.935613",
+    "username": "admin",
+    "action": "logout",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-22T16:33:14.139860",
+    "username": "admin",
+    "action": "login_success",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-22T16:49:42.941252",
+    "username": "admin",
+    "action": "logout",
+    "resource": null,
+    "details": null
   }
 ]

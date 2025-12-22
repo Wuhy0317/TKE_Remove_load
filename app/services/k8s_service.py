@@ -163,13 +163,23 @@ class K8sService:
                     elif deploy.status.unavailable_replicas is not None and deploy.status.unavailable_replicas > 0:
                         status = "Unavailable"
                     
+                    # 获取资源请求和限制
+                    resources = ""
+                    if deploy.spec.template.spec.containers and deploy.spec.template.spec.containers[0].resources:
+                        container_resources = deploy.spec.template.spec.containers[0].resources
+                        cpu_request = container_resources.requests.get('cpu', '0') if container_resources.requests else '0'
+                        cpu_limit = container_resources.limits.get('cpu', '0') if container_resources.limits else '0'
+                        mem_request = container_resources.requests.get('memory', '0') if container_resources.requests else '0'
+                        mem_limit = container_resources.limits.get('memory', '0') if container_resources.limits else '0'
+                        resources = f"cpu: {cpu_request}/{cpu_limit}, mem: {mem_request}/{mem_limit}"
+                    
                     workloads.append({
                         'name': deploy.metadata.name,
                         'type': 'deployment',
                         'namespace': namespace,
                         'ready_replicas': deploy.status.ready_replicas or 0,
                         'desired_replicas': deploy.spec.replicas or 0,
-                        'status': status,
+                        'resources': resources,
                         'creation_time': deploy.metadata.creation_timestamp.isoformat() if deploy.metadata.creation_timestamp else ""
                     })
             
@@ -184,13 +194,23 @@ class K8sService:
                     if sts.status.ready_replicas is not None and sts.status.ready_replicas > 0:
                         status = "Available"
                     
+                    # 获取资源请求和限制
+                    resources = ""
+                    if sts.spec.template.spec.containers and sts.spec.template.spec.containers[0].resources:
+                        container_resources = sts.spec.template.spec.containers[0].resources
+                        cpu_request = container_resources.requests.get('cpu', '0') if container_resources.requests else '0'
+                        cpu_limit = container_resources.limits.get('cpu', '0') if container_resources.limits else '0'
+                        mem_request = container_resources.requests.get('memory', '0') if container_resources.requests else '0'
+                        mem_limit = container_resources.limits.get('memory', '0') if container_resources.limits else '0'
+                        resources = f"cpu: {cpu_request}/{cpu_limit}, mem: {mem_request}/{mem_limit}"
+                    
                     workloads.append({
                         'name': sts.metadata.name,
                         'type': 'statefulset',
                         'namespace': namespace,
                         'ready_replicas': sts.status.ready_replicas or 0,
                         'desired_replicas': sts.spec.replicas or 0,
-                        'status': status,
+                        'resources': resources,
                         'creation_time': sts.metadata.creation_timestamp.isoformat() if sts.metadata.creation_timestamp else ""
                     })
             
@@ -205,13 +225,23 @@ class K8sService:
                     if ds.status.number_ready is not None and ds.status.number_ready > 0:
                         status = "Available"
                     
+                    # 获取资源请求和限制
+                    resources = ""
+                    if ds.spec.template.spec.containers and ds.spec.template.spec.containers[0].resources:
+                        container_resources = ds.spec.template.spec.containers[0].resources
+                        cpu_request = container_resources.requests.get('cpu', '0') if container_resources.requests else '0'
+                        cpu_limit = container_resources.limits.get('cpu', '0') if container_resources.limits else '0'
+                        mem_request = container_resources.requests.get('memory', '0') if container_resources.requests else '0'
+                        mem_limit = container_resources.limits.get('memory', '0') if container_resources.limits else '0'
+                        resources = f"cpu: {cpu_request}/{cpu_limit}, mem: {mem_request}/{mem_limit}"
+                    
                     workloads.append({
                         'name': ds.metadata.name,
                         'type': 'daemonset',
                         'namespace': namespace,
                         'ready_replicas': ds.status.number_ready or 0,
                         'desired_replicas': ds.status.desired_number_scheduled or 0,
-                        'status': status,
+                        'resources': resources,
                         'creation_time': ds.metadata.creation_timestamp.isoformat() if ds.metadata.creation_timestamp else ""
                     })
         except Exception as e:
