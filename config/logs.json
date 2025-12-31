@@ -810,5 +810,26 @@
     "action": "logout",
     "resource": null,
     "details": null
+  },
+  {
+    "timestamp": "2025-12-22T17:40:12.038666",
+    "username": "admin",
+    "action": "login_failed",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-22T17:40:14.379998",
+    "username": "admin",
+    "action": "login_success",
+    "resource": null,
+    "details": null
+  },
+  {
+    "timestamp": "2025-12-22T19:04:01.239070",
+    "username": "admin",
+    "action": "logout",
+    "resource": null,
+    "details": null
   }
 ]

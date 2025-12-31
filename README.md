@@ -51,14 +51,14 @@
 │   ├── cluster_configs.json # 集群配置
 │   └── logs.json         # 操作日志
 ├── static/               # 静态资源
-│   ├── admin.html        # 管理后台页面
-│   ├── index.html        # 主页面
+│   ├── index.html        # 主页面（含管理功能）
 │   └── login.html        # 登录页面
-├── kubeconfigs/          # Kubeconfig文件目录
 ├── app.py                # 应用入口
+├── cookies.txt           # Cookies存储文件
 ├── Dockerfile            # Docker构建文件
 ├── deployment.yaml       # Kubernetes部署文件
 ├── requirements.txt      # 依赖列表
+├── user_cookies.txt      # 用户Cookies存储文件
 └── README.md             # 项目文档
 ```
 
@@ -68,29 +68,56 @@
 
 #### 环境要求
 - Python 3.11+
-- pip
+- pip 23.0+
 
 #### 安装步骤
 
 1. 克隆项目
 ```bash
 git clone <repository-url>
-cd k8s-pod-manager
+cd TKE_Remove_load
 ```
 
-2. 安装依赖
+2. 创建并激活虚拟环境（推荐）
+```bash
+# 创建虚拟环境
+python3 -m venv venv
+
+# 激活虚拟环境（macOS/Linux）
+source venv/bin/activate
+
+# 激活虚拟环境（Windows）
+# venv\Scripts\activate
+```
+
+3. 安装依赖
 ```bash
 pip install -r requirements.txt
 ```
 
-3. 启动应用
+#### 主要依赖
+- Flask 3.0.3：Web框架
+- kubernetes 29.0.0：Kubernetes API客户端
+- python-dotenv 1.0.1：环境变量管理
+- flask-cors 4.0.1：跨域资源共享支持
+
+4. 启动应用
 ```bash
+# 在虚拟环境中
 python app.py
+
+# 或直接使用python3
+python3 app.py
 ```
 
-4. 访问应用
+5. 访问应用
 ```
 http://localhost:5000
+```
+
+6. 退出虚拟环境
+```bash
+deactivate
 ```
 
 ### 2. Docker部署
@@ -105,6 +132,7 @@ docker build -t k8s-pod-manager:latest .
 docker run -d -p 5000:5000 --name k8s-pod-manager \
   -v $(pwd)/config:/app/config \
   -v $(pwd)/kubeconfigs:/app/kubeconfigs \
+  -e FLASK_ENV=production \
   k8s-pod-manager:latest
 ```
 
@@ -115,16 +143,25 @@ docker run -d -p 5000:5000 --name k8s-pod-manager \
 kubectl apply -f deployment.yaml
 ```
 
-2. 访问应用
+2. 部署说明
+- 部署包含一个Pod实例，使用NodePort服务暴露在30007端口
+- 配置文件使用PersistentVolumeClaim持久化存储
+- 包含默认的ConfigMap配置，用于初始启动
+
+3. 访问应用
 ```
 http://<node-ip>:30007
 ```
+
+4. 自定义配置
+- 可以通过修改deployment.yaml中的环境变量来自定义配置
+- 可以通过更新ConfigMap来修改初始配置
 
 ## 使用说明
 
 ### 1. 登录系统
 
-- 访问 `http://localhost:5000`
+- 访问 `http://localhost:5000` 或 `http://<node-ip>:30007`（Kubernetes部署）
 - 使用默认用户名密码登录：
   - 管理员：admin/admin123
   - 普通用户：user/user123
@@ -132,34 +169,61 @@ http://<node-ip>:30007
 ### 2. 添加集群
 
 1. 登录管理员账号
-2. 点击"集群管理后台"进入管理页面
+2. 在主页面右上角点击"管理后台"进入管理页面
 3. 切换到"集群管理"标签
 4. 点击"添加集群"按钮
 5. 填写集群名称、显示名称和Kubeconfig内容
-6. 点击"保存"按钮
+6. 点击"保存"按钮，系统会自动验证Kubeconfig的有效性
 
 ### 3. 管理Pod负载
 
 1. 从集群下拉列表中选择一个集群
-2. 选择命名空间和工作负载
-3. 在Pod列表中，点击"踢出负载"按钮将Pod从负载均衡中移除
-4. 点击"恢复流量"按钮将Pod重新加入负载均衡
+2. 选择命名空间和工作负载类型（Deployment、StatefulSet等）
+3. 选择具体的工作负载
+4. 在Pod列表中，点击"踢出负载"按钮将Pod从负载均衡中移除
+5. 点击"恢复流量"按钮将Pod重新加入负载均衡
+6. 查看Pod状态、节点IP、运行时间等详细信息
 
 ### 4. 用户管理
 
 1. 登录管理员账号
 2. 进入管理后台，切换到"用户管理"标签
 3. 点击"添加用户"按钮添加新用户
-4. 设置用户名、密码和权限
-5. 点击"保存"按钮
+4. 设置用户名、密码和权限级别（admin、read、write）
+5. 配置集群级权限（可选）
+6. 点击"保存"按钮
+
+### 5. 日志管理
+
+1. 登录管理员账号
+2. 进入管理后台，切换到"日志管理"标签
+3. 查看操作日志，包括：
+   - 用户登录/登出记录
+   - Pod负载管理操作
+   - 集群管理操作
+   - 用户管理操作
+4. 根据时间范围和操作类型筛选日志
+
+### 6. 集群监控
+
+- 实时查看集群中所有Pod的状态
+- 监控Pod的运行时间和创建时间
+- 快速识别异常状态的Pod
+- 查看Pod所在的真实节点IP
 
 ## 配置说明
 
 ### 1. 应用配置（app/config/config.py）
 
-- `LOAD_LABEL`：负载标签名称（默认：`load`）
-- `LOAD_DONE_VALUE`：踢出负载后的值（默认：`done`）
-- `LOAD_ONLINE_VALUE`：恢复流量后的值（默认：`online`）
+| 配置项 | 说明 | 默认值 |
+|---------|------|--------|
+| `KUBECONFIG_DIR` | Kubeconfig文件存储目录 | `kubeconfigs` |
+| `DEBUG` | Flask调试模式 | `True` |
+| `SECRET_KEY` | Flask密钥，用于加密会话 | `dev-secret-key` |
+| `API_PREFIX` | API路由前缀 | `/api` |
+| `LOAD_LABEL` | 负载标签名称，用于标识Pod是否接收流量 | `load` |
+| `LOAD_ONLINE_VALUE` | 正常接收流量的标签值 | `online` |
+| `LOAD_DONE_VALUE` | 踢出负载后的标签值 | `done` |
 
 ### 2. 用户配置（config/auth_config.json）
 
@@ -194,32 +258,56 @@ http://<node-ip>:30007
 
 ### 1. 认证相关
 
-- `POST /api/login`：用户登录
-- `POST /api/logout`：用户登出
-- `GET /api/current-user`：获取当前用户信息
+| 方法 | 端点 | 描述 | 权限 |
+|------|------|------|------|
+| POST | `/api/login` | 用户登录，返回用户信息和权限 | 公开 |
+| POST | `/api/logout` | 用户登出，清除会话 | 已登录 |
+| GET | `/api/current-user` | 获取当前用户信息和权限 | 已登录 |
 
 ### 2. 集群相关
 
-- `GET /api/clusters`：获取集群列表
-- `GET /api/{cluster}/namespaces`：获取命名空间列表
-- `GET /api/{cluster}/{namespace}/workloads`：获取工作负载列表
-- `GET /api/{cluster}/{namespace}/{workload_type}/{workload_name}/pods`：获取Pod列表
+| 方法 | 端点 | 描述 | 权限 |
+|------|------|------|------|
+| GET | `/api/clusters` | 获取集群列表 | 已登录 |
+| GET | `/api/{cluster}/namespaces` | 获取指定集群的命名空间列表 | 已登录 |
+| GET | `/api/{cluster}/{namespace}/workload-types` | 获取工作负载类型列表 | 已登录 |
+| GET | `/api/{cluster}/{namespace}/workloads` | 获取指定命名空间的工作负载列表 | 已登录 |
+| GET | `/api/{cluster}/{namespace}/{workload_type}/{workload_name}/pods` | 获取指定工作负载的Pod列表 | 已登录 |
 
 ### 3. Pod操作
 
-- `POST /api/{cluster}/{namespace}/pods/{pod_name}/remove-load`：踢出负载
-- `POST /api/{cluster}/{namespace}/pods/{pod_name}/restore-traffic`：恢复流量
+| 方法 | 端点 | 描述 | 权限 |
+|------|------|------|------|
+| POST | `/api/{cluster}/{namespace}/pods/{pod_name}/remove-load` | 踢出Pod负载，设置load标签为done | write |
+| POST | `/api/{cluster}/{namespace}/pods/{pod_name}/restore-traffic` | 恢复Pod流量，设置load标签为online | write |
 
 ### 4. 管理后台API
 
-- `GET /api/admin/clusters`：获取集群列表（管理）
-- `POST /api/admin/clusters`：添加集群（管理）
-- `PUT /api/admin/clusters/{cluster_name}`：更新集群（管理）
-- `DELETE /api/admin/clusters/{cluster_name}`：删除集群（管理）
-- `GET /api/admin/users`：获取用户列表（管理）
-- `POST /api/admin/users`：添加用户（管理）
-- `PUT /api/admin/users/{username}`：更新用户（管理）
-- `DELETE /api/admin/users/{username}`：删除用户（管理）
+#### 集群管理
+
+| 方法 | 端点 | 描述 | 权限 |
+|------|------|------|------|
+| GET | `/api/admin/clusters` | 获取集群列表（管理） | admin |
+| POST | `/api/admin/clusters` | 添加集群（管理） | admin |
+| PUT | `/api/admin/clusters/{cluster_name}` | 更新集群（管理） | admin |
+| DELETE | `/api/admin/clusters/{cluster_name}` | 删除集群（管理） | admin |
+
+#### 用户管理
+
+| 方法 | 端点 | 描述 | 权限 |
+|------|------|------|------|
+| GET | `/api/admin/users` | 获取用户列表（管理） | admin |
+| POST | `/api/admin/users` | 添加用户（管理） | admin |
+| PUT | `/api/admin/users/{username}` | 更新用户（管理） | admin |
+| DELETE | `/api/admin/users/{username}` | 删除用户（管理） | admin |
+
+#### 日志管理
+
+| 方法 | 端点 | 描述 | 权限 |
+|------|------|------|------|
+| GET | `/api/admin/logs` | 获取操作日志（管理） | admin |
+| GET | `/api/admin/logs?start_time=xxx&end_time=xxx` | 根据时间范围获取日志 | admin |
+| GET | `/api/admin/logs?action=remove-load` | 根据操作类型获取日志 | admin |
 
 ## 负载管理原理
 
@@ -348,19 +436,101 @@ spec:
 
 ## 版本历史
 
-- v1.0.0：初始版本
-  - 支持多集群管理
-  - 支持Pod负载踢出和恢复
-  - 支持用户认证和权限管理
-  - 提供Web管理界面
-  - 支持Docker和Kubernetes部署
+### v1.0.0 (当前版本)
+- ✅ **核心功能**：
+  - 多集群管理支持
+  - Pod负载踢出和恢复功能
+  - 实时Pod信息展示
+  - 节点IP显示
+- ✅ **认证与权限**：
+  - 基于用户名密码的认证
+  - 三级权限模型（admin、read、write）
+  - 集群级权限控制
+  - 操作日志记录
+- ✅ **部署支持**：
+  - Docker容器化部署
+  - Kubernetes原生部署
+  - 配置持久化
+- ✅ **管理功能**：
+  - 集群管理
+  - 用户管理
+  - 操作日志查看
 
 ## 贡献指南
 
-1. Fork项目
-2. 创建特性分支
-3. 提交代码
-4. 创建Pull Request
+### 开发流程
+
+1. **Fork项目**：在GitHub上Fork项目到自己的仓库
+2. **克隆代码**：将Fork的仓库克隆到本地
+3. **创建分支**：创建一个新的特性分支
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+4. **开发代码**：实现新功能或修复bug，遵循代码风格规范
+5. **测试代码**：确保代码可以正常运行，没有语法错误
+6. **提交代码**：
+   ```bash
+   git add .
+   git commit -m "Add: 新功能描述"
+   ```
+7. **推送分支**：将分支推送到GitHub
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+8. **创建Pull Request**：在GitHub上创建Pull Request，描述你的更改
+
+### 代码规范
+
+- 遵循PEP 8规范
+- 使用4空格缩进
+- 代码中添加必要的注释
+- 使用类型提示
+- 确保代码可读性
+
+### 测试要求
+
+- 确保所有功能正常工作
+- 测试边界情况
+- 确保API端点正常响应
+- 测试权限控制逻辑
+
+## 故障排除
+
+### 1. 应用无法启动
+
+**可能原因**：
+- Python版本不兼容
+- 依赖包未正确安装
+- 端口被占用
+
+**解决方案**：
+- 确保使用Python 3.11+
+- 重新安装依赖：`pip install -r requirements.txt`
+- 检查端口5000是否被占用，或修改端口号
+
+### 2. 无法连接到Kubernetes集群
+
+**可能原因**：
+- Kubeconfig配置错误
+- 网络连接问题
+- 集群认证失败
+
+**解决方案**：
+- 检查Kubeconfig内容是否正确
+- 确保网络可以访问集群API服务器
+- 验证Kubeconfig的认证信息
+
+### 3. Pod负载管理不生效
+
+**可能原因**：
+- Service标签选择器未配置load标签
+- Pod没有load标签
+- 权限不足
+
+**解决方案**：
+- 检查Service的标签选择器，确保包含`load: online`
+- 确保Pod被正确标记了load标签
+- 检查用户是否有write权限
 
 ## 许可证
 
